@@ -1,0 +1,33 @@
+services:
+  cpp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID-1000}
+        GID: ${GID-1000}
+        USERNAME: ${USERNAME-dev}
+    image: raytracer-dev:latest
+    container_name: raytracer-dev
+    working_dir: /work
+    volumes:
+      - ./:/work:cached # Project folder
+      - ./output:/work/output # Generated images
+      - ccache:/home/dev/.cache/ccache
+      - conan2:/home/dev/.conan2
+    environment:
+      CC: clang
+      CXX: clang++
+      CMAKE_GENERATOR: Ninja
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    tty: true
+    stdin_open: true
+    ports:
+      - "127.0.0.1:13000:13000"
+    user: "${UID-1000}:${GID-1000}"
+volumes:
+  ccache:
+  conan2:

@@ -1,0 +1,314 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": { "major": 3, "minor": 25 },
+
+    "configurePresets": [
+        {
+            "name": "base-ninja",
+            "displayName": "Base (Ninja)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/cmake",
+            "cacheVariables": {
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "base-msvc",
+            "displayName": "Base (MSVC)",
+            "generator": "Visual Studio 17 2022",
+            "architecture": { "value": "x64", "strategy": "external" },
+            "binaryDir": "${sourceDir}/build/cmake",
+            "cacheVariables": {
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+
+        {
+            "name": "host-linux-clang-debug",
+            "displayName": "Host Linux Clang Debug",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/linux-x86_64-clang/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/linux-x86_64-clang/debug/cmake/conan_toolchain.cmake"
+            },
+            "environment": { "CC": "clang", "CXX": "clang++" }
+        },
+        {
+            "name": "host-linux-clang-release",
+            "displayName": "Host Linux Clang Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/linux-x86_64-clang/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/linux-x86_64-clang/release/cmake/conan_toolchain.cmake"
+            },
+            "environment": { "CC": "clang", "CXX": "clang++" }
+        },
+        {
+            "name": "host-linux-gcc-debug",
+            "displayName": "Host Linux GCC Debug",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/linux-x86_64-gcc/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/linux-x86_64-gcc/debug/cmake/conan_toolchain.cmake"
+            },
+            "environment": { "CC": "gcc", "CXX": "g++" }
+        },
+        {
+            "name": "host-linux-gcc-release",
+            "displayName": "Host Linux GCC Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/linux-x86_64-gcc/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/linux-x86_64-gcc/release/cmake/conan_toolchain.cmake"
+            },
+            "environment": { "CC": "gcc", "CXX": "g++" }
+        },
+
+        {
+            "name": "host-macos-arm64-appleclang-debug",
+            "displayName": "Host macOS arm64 AppleClang Debug",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/macos-arm64-appleclang/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/macos-arm64-appleclang/debug/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-macos-arm64-appleclang-release",
+            "displayName": "Host macOS arm64 AppleClang Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/macos-arm64-appleclang/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/macos-arm64-appleclang/release/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-macos-x86_64-appleclang-debug",
+            "displayName": "Host macOS x86_64 AppleClang Debug",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/macos-x86_64-appleclang/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/macos-x86_64-appleclang/debug/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-macos-x86_64-appleclang-release",
+            "displayName": "Host macOS x86_64 AppleClang Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/macos-x86_64-appleclang/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/macos-x86_64-appleclang/release/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-macos-universal-appleclang-release",
+            "displayName": "Host macOS Universal AppleClang Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build/macos-universal-appleclang/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/macos-universal-appleclang/release/cmake/conan_toolchain.cmake"
+            }
+        },
+
+        {
+            "name": "host-windows-msvc-debug",
+            "displayName": "Host Windows MSVC Debug",
+            "inherits": "base-msvc",
+            "binaryDir": "${sourceDir}/build/windows-x86_64-msvc/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/windows-x86_64-msvc/debug/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-windows-msvc-release",
+            "displayName": "Host Windows MSVC Release",
+            "inherits": "base-msvc",
+            "binaryDir": "${sourceDir}/build/windows-x86_64-msvc/release/cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/windows-x86_64-msvc/release/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-windows-clangcl-debug",
+            "displayName": "Host Windows Clang-CL Debug (MSVC STL)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/windows-x86_64-clangcl/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "clang-cl",
+                "CMAKE_CXX_COMPILER": "clang-cl",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/windows-x86_64-clangcl/debug/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "host-windows-clangcl-release",
+            "displayName": "Host Windows Clang-CL Release (MSVC STL)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/windows-x86_64-clangcl/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_COMPILER": "clang-cl",
+                "CMAKE_CXX_COMPILER": "clang-cl",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/windows-x86_64-clangcl/release/cmake/conan_toolchain.cmake"
+            }
+        },
+
+        {
+            "name": "docker-dev-debug",
+            "displayName": "Docker Dev Debug",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build.docker/dev/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build.docker/dev/debug/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "docker-dev-release",
+            "displayName": "Docker Dev Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build.docker/dev/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build.docker/dev/release/cmake/conan_toolchain.cmake"
+            }
+        },
+
+        {
+            "name": "docker-ci-debug",
+            "displayName": "Docker CI Debug",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build.docker/ci/debug/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build.docker/ci/debug/cmake/conan_toolchain.cmake"
+            }
+        },
+        {
+            "name": "docker-ci-release",
+            "displayName": "Docker CI Release",
+            "inherits": "base-ninja",
+            "binaryDir": "${sourceDir}/build.docker/ci/release/cmake",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build.docker/ci/release/cmake/conan_toolchain.cmake"
+            }
+        }
+    ],
+
+    "buildPresets": [
+        { "name": "host-linux-clang-debug", "configurePreset": "host-linux-clang-debug" },
+        { "name": "host-linux-clang-release", "configurePreset": "host-linux-clang-release" },
+        { "name": "host-linux-gcc-debug", "configurePreset": "host-linux-gcc-debug" },
+        { "name": "host-linux-gcc-release", "configurePreset": "host-linux-gcc-release" },
+
+        {
+            "name": "host-macos-arm64-appleclang-debug",
+            "configurePreset": "host-macos-arm64-appleclang-debug"
+        },
+        {
+            "name": "host-macos-arm64-appleclang-release",
+            "configurePreset": "host-macos-arm64-appleclang-release"
+        },
+        {
+            "name": "host-macos-x86_64-appleclang-debug",
+            "configurePreset": "host-macos-x86_64-appleclang-debug"
+        },
+        {
+            "name": "host-macos-x86_64-appleclang-release",
+            "configurePreset": "host-macos-x86_64-appleclang-release"
+        },
+        {
+            "name": "host-macos-universal-appleclang-release",
+            "configurePreset": "host-macos-universal-appleclang-release"
+        },
+
+        {
+            "name": "host-windows-msvc-debug",
+            "configurePreset": "host-windows-msvc-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "host-windows-msvc-release",
+            "configurePreset": "host-windows-msvc-release",
+            "configuration": "Release"
+        },
+        { "name": "host-windows-clangcl-debug", "configurePreset": "host-windows-clangcl-debug" },
+        {
+            "name": "host-windows-clangcl-release",
+            "configurePreset": "host-windows-clangcl-release"
+        },
+
+        { "name": "docker-dev-debug", "configurePreset": "docker-dev-debug" },
+        { "name": "docker-dev-release", "configurePreset": "docker-dev-release" },
+        { "name": "docker-ci-debug", "configurePreset": "docker-ci-debug" },
+        { "name": "docker-ci-release", "configurePreset": "docker-ci-release" }
+    ],
+
+    "testPresets": [
+        { "name": "host-linux-clang-debug", "configurePreset": "host-linux-clang-debug" },
+        { "name": "host-linux-clang-release", "configurePreset": "host-linux-clang-release" },
+        { "name": "host-linux-gcc-debug", "configurePreset": "host-linux-gcc-debug" },
+        { "name": "host-linux-gcc-release", "configurePreset": "host-linux-gcc-release" },
+
+        {
+            "name": "host-macos-arm64-appleclang-debug",
+            "configurePreset": "host-macos-arm64-appleclang-debug"
+        },
+        {
+            "name": "host-macos-arm64-appleclang-release",
+            "configurePreset": "host-macos-arm64-appleclang-release"
+        },
+        {
+            "name": "host-macos-x86_64-appleclang-debug",
+            "configurePreset": "host-macos-x86_64-appleclang-debug"
+        },
+        {
+            "name": "host-macos-x86_64-appleclang-release",
+            "configurePreset": "host-macos-x86_64-appleclang-release"
+        },
+        {
+            "name": "host-macos-universal-appleclang-release",
+            "configurePreset": "host-macos-universal-appleclang-release"
+        },
+
+        {
+            "name": "host-windows-msvc-debug",
+            "configurePreset": "host-windows-msvc-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "host-windows-msvc-release",
+            "configurePreset": "host-windows-msvc-release",
+            "configuration": "Release"
+        },
+        { "name": "host-windows-clangcl-debug", "configurePreset": "host-windows-clangcl-debug" },
+        {
+            "name": "host-windows-clangcl-release",
+            "configurePreset": "host-windows-clangcl-release"
+        },
+
+        { "name": "docker-dev-debug", "configurePreset": "docker-dev-debug" },
+        { "name": "docker-dev-release", "configurePreset": "docker-dev-release" },
+        { "name": "docker-ci-debug", "configurePreset": "docker-ci-debug" },
+        { "name": "docker-ci-release", "configurePreset": "docker-ci-release" }
+    ]
+}

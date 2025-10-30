@@ -1,0 +1,87 @@
+# Clang-Tidy configuration for Raytracer (C++20)
+# Focus: correctness, lifetime, performance, readability, portability
+
+CompileCommandsDir: build
+
+HeaderFilterRegex: "^(src|include)/"
+# Exclude vendored or generated code (adjust if you add such dirs)
+# Use --header-filter on CLI to override.
+
+Checks: >
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  modernize-*,
+  hicpp-*,
+  cppcoreguidelines-*,
+  # Google rules (selected, low-noise)
+  google-build-using-namespace,
+  google-default-arguments,
+  google-runtime-operator
+
+# Turn off noisy / incompatible checks for a rendering codebase
+CheckOptions:
+  # ---------- Naming (keep consistent & realistic) ----------
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: _
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+
+  # ---------- Modernize preferences ----------
+  - key: modernize-use-override.IgnoreDestructors
+    value: "1"
+  - key: modernize-pass-by-value.IncludeStyle
+    value: llvm
+  - key: modernize-use-trailing-return-type.MinTypeNameLength
+    value: "8" # only for long/templated signatures
+
+  # ---------- Readability preferences ----------
+  - key: readability-implicit-bool-conversion.AllowIntegerConditions
+    value: "0"
+  - key: readability-braces-around-statements.ShortStatementLines
+    value: "0" # always use braces (matches your clang-format)
+
+  # ---------- Performance ----------
+  - key: performance-for-range-copy.WarnOnAllAutoCopies
+    value: "1"
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: "std::string_view"
+
+  # ---------- Analyzer tuning ----------
+  - key: clang-analyzer-cplusplus.NewDeleteLeaks
+    value: "true"
+  - key: clang-analyzer-cplusplus.Move
+    value: "true"
+
+WarningsAsErrors: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  portability-*
+
+# Disable overly pedantic checks that create noise or clash with our style:
+# (These are still available on-demand if you need them)
+# - cppcoreguidelines-avoid-magic-numbers (math-heavy code often uses literals)
+# - cppcoreguidelines-owning-memory (false positives when interfacing with libs)
+# - cppcoreguidelines-pro-bounds-array-to-pointer-decay (noisy)
+# - hicpp-no-assembler (we might use intrinsics later)
+# - readability-magic-numbers (same reason as above)
+
+# You can re-enable any of those ad-hoc via CLI: -checks=+readability-magic-numbers
