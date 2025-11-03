@@ -13,7 +13,6 @@ class RaytracerDeps(ConanFile):
     requires = (
         "fmt/12.0.0",
         "nlohmann_json/3.12.0",
-        "glm/1.0.1",
         "stb/cci.20240531",
         "doctest/2.4.12",
     )

@@ -65,7 +65,6 @@ endif()
 
 find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
 find_package(stb CONFIG REQUIRED)
 find_package(doctest CONFIG QUIET)
 
