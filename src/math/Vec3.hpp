@@ -54,7 +54,7 @@ class Vec3 {
 
     float length_squared() const { return x * x + y * y + z * z; }
 
-    float length() const { return rtmath::sqrt(length_squared()); }
+    float length() const { return raylabs::sqrt(length_squared()); }
 };
 
 using Point3 = Vec3;

@@ -213,5 +213,8 @@ scripts/
 # Docker builds
 /build.docker/
 
+# Conan cache
+/.conan2/
+
 # Output
 /output

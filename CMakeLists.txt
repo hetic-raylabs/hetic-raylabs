@@ -97,7 +97,13 @@ if(doctest_FOUND)
   target_link_libraries(test_ray PRIVATE doctest::doctest)
   rt_mark_test_target(test_ray)
   
+  add_executable(test_camera tests/test_camera.cpp)
+  target_include_directories(test_camera PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  target_link_libraries(test_camera PRIVATE doctest::doctest)
+  rt_mark_test_target(test_camera)
+  
   enable_testing()
   add_test(NAME vec3_tests COMMAND test_vec3)
   add_test(NAME ray_tests COMMAND test_ray)
+  add_test(NAME camera_tests COMMAND test_camera)
 endif()

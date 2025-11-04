@@ -97,10 +97,10 @@ TEST_CASE("Vec3 normalize") {
 }
 
 TEST_CASE("Custom sqrt function") {
-    CHECK(rtmath::sqrt(0.0f) == doctest::Approx(0.0f));
-    CHECK(rtmath::sqrt(1.0f) == doctest::Approx(1.0f));
-    CHECK(rtmath::sqrt(4.0f) == doctest::Approx(2.0f));
-    CHECK(rtmath::sqrt(9.0f) == doctest::Approx(3.0f));
-    CHECK(rtmath::sqrt(25.0f) == doctest::Approx(5.0f));
-    CHECK(rtmath::sqrt(2.0f) == doctest::Approx(1.414213f).epsilon(0.001));
+    CHECK(raylabs::sqrt(0.0f) == doctest::Approx(0.0f));
+    CHECK(raylabs::sqrt(1.0f) == doctest::Approx(1.0f));
+    CHECK(raylabs::sqrt(4.0f) == doctest::Approx(2.0f));
+    CHECK(raylabs::sqrt(9.0f) == doctest::Approx(3.0f));
+    CHECK(raylabs::sqrt(25.0f) == doctest::Approx(5.0f));
+    CHECK(raylabs::sqrt(2.0f) == doctest::Approx(1.414213f).epsilon(0.001));
 }
