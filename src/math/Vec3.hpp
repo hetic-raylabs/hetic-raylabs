@@ -58,7 +58,7 @@ class Vec3 {
 };
 
 using Point3 = Vec3;
-using Color = Vec3;
+// using Color = Vec3;
 
 inline Vec3 operator*(float t, const Vec3& v) {
     return v * t;

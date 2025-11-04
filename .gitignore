@@ -216,3 +216,5 @@ scripts/
 # Conan cache
 /.conan2/
 
+# Output
+/output
