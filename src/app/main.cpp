@@ -1,4 +1,5 @@
 #include <iostream>
+#include "core/Camera.hpp"
 #include "core/HitRecord.hpp"
 #include "core/Ray.hpp"
 #include "math/Vec3.hpp"
@@ -25,6 +26,28 @@ int main() {
     std::cout << "Hit point: " << rec.point << std::endl;
     std::cout << "Normal: " << rec.normal << std::endl;
     std::cout << "Distance t: " << rec.t << std::endl;
+
+    std::cout << "\n=== Camera Test ===" << std::endl;
+    Point3 camera_pos(0, 0, 0);
+    Point3 look_at(0, 0, -1);
+    Vec3 up(0, 1, 0);
+    float fov = 90.0f;
+    float aspect_ratio = 16.0f / 9.0f;
+
+    Camera camera(camera_pos, look_at, up, fov, aspect_ratio);
+    std::cout << "Camera position: " << camera.position << std::endl;
+    std::cout << "Camera look_at: " << camera.look_at << std::endl;
+    std::cout << "Camera FOV: " << camera.fov << std::endl;
+    std::cout << "Camera aspect ratio: " << camera.aspect_ratio << std::endl;
+
+    std::cout << "\n=== Camera Ray Generation ===" << std::endl;
+    Ray center_ray = camera.get_ray(0.5f, 0.5f);
+    std::cout << "Center ray origin: " << center_ray.origin << std::endl;
+    std::cout << "Center ray direction: " << center_ray.direction << std::endl;
+
+    Ray corner_ray = camera.get_ray(0.0f, 0.0f);
+    std::cout << "Bottom-left ray origin: " << corner_ray.origin << std::endl;
+    std::cout << "Bottom-left ray direction: " << corner_ray.direction << std::endl;
 
     return 0;
 }
