@@ -69,8 +69,21 @@ find_package(stb CONFIG QUIET)
 find_package(doctest CONFIG QUIET)
 
 # Source files
-add_executable(raytracer src/app/main.cpp)
+add_executable(raytracer src/app/main.cpp
+# ... autres fichiers de raymath
+    src/image/Image.cpp
+    src/math/Color.cpp
+    src/lodepng/lodepng.cpp
+)
 target_include_directories(raytracer PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+
+# add_subdirectory(src)
+target_include_directories(raytracer PUBLIC
+                           "${PROJECT_BINARY_DIR}"
+                           "${PROJECT_SOURCE_DIR}/src/math"
+                           "${PROJECT_SOURCE_DIR}/src/image"
+                           )
 
 # Tests
 if(doctest_FOUND)

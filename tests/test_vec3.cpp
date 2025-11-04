@@ -1,6 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
-#include "math/vec3.h"
+#include "math/Vec3.hpp"
 
 TEST_CASE("Vec3 construction") {
     Vec3 v;
