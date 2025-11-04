@@ -41,7 +41,7 @@ inline float tan(float x) {
         if (i % 2 == 0) {
             result += term;
         } else {
-            result += term;
+            result -= term;
         }
     }
     return result;

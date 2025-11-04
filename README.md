@@ -1,11 +1,28 @@
+# Raytracer Raylabs
+
+Projet de raytracer en C++ pur développé dans le cadre du cours HETIC.
+
+## 🚀 Installation rapide (Docker - Recommandé)
+
+```bash
+# Build complet (première installation)
+docker-compose run --rm cpp-dev bash -c "conan profile detect --force && conan install . --output-folder=build.docker/dev/release --build=missing --settings=build_type=Release && cmake --preset conan-release && cmake --build --preset conan-release"
+
+# Tests
+docker-compose run --rm cpp-dev bash -c "cd build.docker/dev/release/cmake/Release && ctest --output-on-failure"
+
+# Run
+docker-compose run --rm cpp-dev bash -c "./build.docker/dev/release/cmake/bin/raytracer"
+```
+
 ## 🧠 Build Commands
 
 ### Linux (Docker)
 
 ```shell
 conan install . -of=build.docker/dev/release --build=missing -s build_type=Release
-cmake --preset docker-dev-release
-cmake --build --preset docker-dev-release -j
+cmake --preset conan-release
+cmake --build --preset conan-release -j
 ```
 
 ### macOS (Apple Silicon)
@@ -14,7 +31,6 @@ cmake --build --preset docker-dev-release -j
 conan install . -of=build/macos-arm64-appleclang/debug --build=missing
 cmake --preset host-macos-arm64-appleclang-debug
 cmake --build --preset host-macos-arm64-appleclang-debug -j
-./build/macos-arm64-appleclang/debug/bin/raytracer --scene ./assets/scenes/sample.json --out ./output/out.png
 ```
 
 ### Windows (MSVC or Clang-cl)
