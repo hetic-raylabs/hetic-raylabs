@@ -68,8 +68,16 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(stb CONFIG REQUIRED)
 find_package(doctest CONFIG QUIET)
 
-# add_subdirectory(src)
-# add_subdirectory(tests)
-
 # Source files
 add_executable(raytracer src/app/main.cpp)
+target_include_directories(raytracer PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+# Tests
+if(doctest_FOUND)
+  add_executable(test_vec3 tests/test_vec3.cpp)
+  target_include_directories(test_vec3 PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  target_link_libraries(test_vec3 PRIVATE doctest::doctest)
+  rt_mark_test_target(test_vec3)
+  enable_testing()
+  add_test(NAME vec3_tests COMMAND test_vec3)
+endif()
