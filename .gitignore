@@ -213,3 +213,5 @@ scripts/
 # Docker builds
 /build.docker/
 
+# Output
+/output
