@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "math_utils.h"
+#include "math_utils.hpp"
 
 class Vec3 {
    public:
