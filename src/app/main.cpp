@@ -4,8 +4,8 @@
 #include "core/Ray.hpp"
 #include "math/Vec3.hpp"
 
-#include "Color.hpp"
-#include "Image.hpp"
+#include "image/Image.hpp"
+#include "math/Color.hpp"
 
 using namespace std;
 
@@ -82,15 +82,14 @@ int main() {
 
     // Make a red square on the top left of the image
     for (int y = 0; y < image_height; y++) {
-      for (int x = 0; x < image_width; x++) {
-        // image.SetPixel(x, y, Color(1, 1, 1));
-        double r = double(x) / (image_width - 1);
-        double g = double(y) / (image_height - 1);
-        double b = 0.0;
-        image.SetPixel(x, y, Color(r, g, b));
-      }
+        for (int x = 0; x < image_width; x++) {
+            // image.SetPixel(x, y, Color(1, 1, 1));
+            double r = double(x) / (image_width - 1);
+            double g = double(y) / (image_height - 1);
+            double b = 0.0;
+            image.SetPixel(x, y, Color(r, g, b));
+        }
     }
 
     image.WriteFile("./output/test.png");
-
 }
