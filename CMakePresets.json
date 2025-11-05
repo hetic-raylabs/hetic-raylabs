@@ -2,6 +2,12 @@
     "version": 6,
     "cmakeMinimumRequired": { "major": 3, "minor": 25 },
 
+    "vendor": {
+        "raylabs": {
+            "notes": "Shared options and toggles for RayLabs project"
+        }
+    },
+
     "configurePresets": [
         {
             "name": "base-ninja",
@@ -28,9 +34,35 @@
         },
 
         {
+            "name": "with-testing",
+            "hidden": true,
+            "cacheVariables": { "BUILD_TESTING": "ON" }
+        },
+        {
+            "name": "with-clang-tidy",
+            "hidden": true,
+            "cacheVariables": { "ENABLE_CLANG_TIDY": "ON" }
+        },
+        {
+            "name": "with-lto",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
+            }
+        },
+        {
+            "name": "with-asan",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS_DEBUG": "-fsanitize=address -fno-omit-frame-pointer",
+                "CMAKE_LINKER_FLAGS_DEBUG": "-fsanitize=address"
+            }
+        },
+
+        {
             "name": "host-linux-clang-debug",
             "displayName": "Host Linux Clang Debug",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja"],
             "binaryDir": "${sourceDir}/build/linux-x86_64-clang/debug/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -41,7 +73,7 @@
         {
             "name": "host-linux-clang-release",
             "displayName": "Host Linux Clang Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build/linux-x86_64-clang/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -52,7 +84,7 @@
         {
             "name": "host-linux-gcc-debug",
             "displayName": "Host Linux GCC Debug",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja"],
             "binaryDir": "${sourceDir}/build/linux-x86_64-gcc/debug/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -63,7 +95,7 @@
         {
             "name": "host-linux-gcc-release",
             "displayName": "Host Linux GCC Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build/linux-x86_64-gcc/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -75,7 +107,7 @@
         {
             "name": "host-macos-arm64-appleclang-debug",
             "displayName": "Host macOS arm64 AppleClang Debug",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja"],
             "binaryDir": "${sourceDir}/build/macos-arm64-appleclang/debug/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -86,7 +118,7 @@
         {
             "name": "host-macos-arm64-appleclang-release",
             "displayName": "Host macOS arm64 AppleClang Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build/macos-arm64-appleclang/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -97,7 +129,7 @@
         {
             "name": "host-macos-x86_64-appleclang-debug",
             "displayName": "Host macOS x86_64 AppleClang Debug",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja"],
             "binaryDir": "${sourceDir}/build/macos-x86_64-appleclang/debug/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -108,7 +140,7 @@
         {
             "name": "host-macos-x86_64-appleclang-release",
             "displayName": "Host macOS x86_64 AppleClang Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build/macos-x86_64-appleclang/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -119,7 +151,7 @@
         {
             "name": "host-macos-universal-appleclang-release",
             "displayName": "Host macOS Universal AppleClang Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build/macos-universal-appleclang/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
@@ -131,7 +163,7 @@
         {
             "name": "host-windows-msvc-debug",
             "displayName": "Host Windows MSVC Debug",
-            "inherits": "base-msvc",
+            "inherits": ["base-msvc"],
             "binaryDir": "${sourceDir}/build/windows-x86_64-msvc/debug/cmake",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/windows-x86_64-msvc/debug/cmake/conan_toolchain.cmake"
@@ -140,7 +172,7 @@
         {
             "name": "host-windows-msvc-release",
             "displayName": "Host Windows MSVC Release",
-            "inherits": "base-msvc",
+            "inherits": ["base-msvc", "with-lto"],
             "binaryDir": "${sourceDir}/build/windows-x86_64-msvc/release/cmake",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/windows-x86_64-msvc/release/cmake/conan_toolchain.cmake"
@@ -174,7 +206,7 @@
         {
             "name": "docker-dev-debug",
             "displayName": "Docker Dev Debug",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja"],
             "binaryDir": "${sourceDir}/build.docker/dev/debug/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -184,18 +216,17 @@
         {
             "name": "docker-dev-release",
             "displayName": "Docker Dev Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build.docker/dev/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build.docker/dev/release/cmake/conan_toolchain.cmake"
             }
         },
-
         {
             "name": "docker-ci-debug",
             "displayName": "Docker CI Debug",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja"],
             "binaryDir": "${sourceDir}/build.docker/ci/debug/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -205,12 +236,25 @@
         {
             "name": "docker-ci-release",
             "displayName": "Docker CI Release",
-            "inherits": "base-ninja",
+            "inherits": ["base-ninja", "with-lto"],
             "binaryDir": "${sourceDir}/build.docker/ci/release/cmake",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build.docker/ci/release/cmake/conan_toolchain.cmake"
             }
+        },
+
+        {
+            "name": "host-linux-clang-debug-tests",
+            "inherits": ["host-linux-clang-debug", "with-testing"]
+        },
+        {
+            "name": "host-linux-clang-release-lto-tidy",
+            "inherits": ["host-linux-clang-release", "with-testing", "with-clang-tidy"]
+        },
+        {
+            "name": "host-linux-gcc-debug-asan",
+            "inherits": ["host-linux-gcc-debug", "with-testing", "with-asan"]
         }
     ],
 
@@ -260,14 +304,40 @@
         { "name": "docker-dev-debug", "configurePreset": "docker-dev-debug" },
         { "name": "docker-dev-release", "configurePreset": "docker-dev-release" },
         { "name": "docker-ci-debug", "configurePreset": "docker-ci-debug" },
-        { "name": "docker-ci-release", "configurePreset": "docker-ci-release" }
+        { "name": "docker-ci-release", "configurePreset": "docker-ci-release" },
+
+        {
+            "name": "host-linux-clang-debug-tests",
+            "configurePreset": "host-linux-clang-debug-tests"
+        },
+        {
+            "name": "host-linux-clang-release-lto-tidy",
+            "configurePreset": "host-linux-clang-release-lto-tidy"
+        },
+        { "name": "host-linux-gcc-debug-asan", "configurePreset": "host-linux-gcc-debug-asan" }
     ],
 
     "testPresets": [
-        { "name": "host-linux-clang-debug", "configurePreset": "host-linux-clang-debug" },
-        { "name": "host-linux-clang-release", "configurePreset": "host-linux-clang-release" },
-        { "name": "host-linux-gcc-debug", "configurePreset": "host-linux-gcc-debug" },
-        { "name": "host-linux-gcc-release", "configurePreset": "host-linux-gcc-release" },
+        {
+            "name": "host-linux-clang-debug",
+            "configurePreset": "host-linux-clang-debug",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "host-linux-clang-release",
+            "configurePreset": "host-linux-clang-release",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "host-linux-gcc-debug",
+            "configurePreset": "host-linux-gcc-debug",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "host-linux-gcc-release",
+            "configurePreset": "host-linux-gcc-release",
+            "output": { "outputOnFailure": true }
+        },
 
         {
             "name": "host-macos-arm64-appleclang-debug",
