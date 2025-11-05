@@ -1,5 +1,5 @@
 #include "Sphere.hpp"
-#include "math/math_utils.hpp"
+#include "math/Math_utils.hpp"
 
 bool Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const {
     // Calcul de l'intersection rayon-sphère
