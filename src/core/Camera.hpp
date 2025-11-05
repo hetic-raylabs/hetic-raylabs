@@ -1,8 +1,8 @@
 #pragma once
 
 #include "core/Ray.hpp"
+#include "math/Math_utils.hpp"
 #include "math/Vec3.hpp"
-#include "math/math_utils.hpp"
 
 class Camera {
    public:
