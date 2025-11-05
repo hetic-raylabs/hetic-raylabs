@@ -1,9 +1,11 @@
 #include <iostream>
+#include <string>
 #include "core/Camera.hpp"
 #include "core/HitRecord.hpp"
 #include "core/Ray.hpp"
 #include "core/Scene.hpp"
 #include "entities/Plane.hpp"
+#include "io/JsonSceneLoader.hpp"
 #include "math/Vec3.hpp"
 
 #include "Color.hpp"
@@ -30,10 +32,20 @@ int main() {
     int image_height = 512;
     int image_width = 512;
 
-    Camera camera(Point3(0, 1, 3), Point3(0, 0.3f, 0), Vec3(0, 1, 0), 60.0f, float(image_width) / float(image_height));
-
     Scene scene;
-    scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0)));
+    Camera camera;
+
+    std::string err;
+    bool loaded = io::JsonSceneLoader::loadFromFile("assets/scenes/ground_with_triangle.json", scene, camera, &err);
+    if (!loaded) {
+        cerr << "JSON load failed: " << err << ". Using fallback scene." << endl;
+        camera = Camera(Point3(0, 1, 3), Point3(0, 0.3f, 0), Vec3(0, 1, 0), 60.0f, float(image_width)/float(image_height));
+        scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0))); 
+    }
+
+    // S’assure que la caméra est initialisée avec l’aspect de l’image si JSON en a un autre
+    camera.aspect_ratio = float(image_width) / float(image_height);
+    camera.initialize();
 
     Image image(image_width, image_height);
 

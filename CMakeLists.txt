@@ -74,8 +74,12 @@ add_executable(raytracer src/app/main.cpp
     src/image/Image.cpp
     src/math/Color.cpp
     src/lodepng/lodepng.cpp
+    src/io/JsonSceneLoader.cpp
 )
 target_include_directories(raytracer PRIVATE ${CMAKE_SOURCE_DIR}/src)
+if (nlohmann_json_FOUND)
+  target_link_libraries(raytracer PRIVATE nlohmann_json::nlohmann_json)
+endif()
 
 
 # add_subdirectory(src)
