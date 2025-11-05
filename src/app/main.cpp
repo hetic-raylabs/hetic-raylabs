@@ -2,6 +2,8 @@
 #include "core/Camera.hpp"
 #include "core/HitRecord.hpp"
 #include "core/Ray.hpp"
+#include "core/Scene.hpp"
+#include "entities/Plane.hpp"
 #include "math/Vec3.hpp"
 
 #include "Color.hpp"
@@ -9,88 +11,46 @@
 
 using namespace std;
 
+static Color sky_color(const Vec3& dir) {
+    float t = 0.5f * (normalize(dir).y + 1.0f);
+    float r = (1.0f - t) * 1.0f + t * 0.5f;
+    float g = (1.0f - t) * 1.0f + t * 0.7f;
+    float b = (1.0f - t) * 1.0f + t * 1.0f;
+    return Color(r, g, b);
+}
+
+static Color ground_color(const Point3& p) {
+    int xi = static_cast<int>(floorf(p.x));
+    int zi = static_cast<int>(floorf(p.z));
+    bool checker = ((xi + zi) & 1) == 0;
+    return checker ? Color(0.8f, 0.8f, 0.8f) : Color(0.2f, 0.2f, 0.2f);
+}
+
 int main() {
-    // Code de la fonctionnalité math
-    /*
-    std::cout << "=== Vec3 Test ===" << std::endl;
-    Vec3 a(1, 2, 3);
-    Vec3 b(4, 5, 6);
-    Vec3 c = a + b;
-    std::cout << "Vec3 test: " << a << " + " << b << " = " << c << std::endl;
-    std::cout << "Length of c: " << c.length() << std::endl;
-
-    std::cout << "\n=== Ray Test ===" << std::endl;
-    Ray ray(Point3(0, 0, 0), Vec3(1, 0, 0));
-    std::cout << "Ray origin: " << ray.origin << std::endl;
-    std::cout << "Ray direction: " << ray.direction << std::endl;
-    std::cout << "Point at t=5: " << ray.at(5.0f) << std::endl;
-
-    std::cout << "\n=== HitRecord Test ===" << std::endl;
-    HitRecord rec;
-    rec.point = Point3(1, 2, 3);
-    rec.normal = Vec3(0, 1, 0);
-    rec.t = 5.0f;
-    std::cout << "Hit point: " << rec.point << std::endl;
-    std::cout << "Normal: " << rec.normal << std::endl;
-    std::cout << "Distance t: " << rec.t << std::endl;
-
-    std::cout << "\n=== Camera Test ===" << std::endl;
-    Point3 camera_pos(0, 0, 0);
-    Point3 look_at(0, 0, -1);
-    Vec3 up(0, 1, 0);
-    float fov = 90.0f;
-    float aspect_ratio = 16.0f / 9.0f;
-
-    Camera camera(camera_pos, look_at, up, fov, aspect_ratio);
-    std::cout << "Camera position: " << camera.position << std::endl;
-    std::cout << "Camera look_at: " << camera.look_at << std::endl;
-    std::cout << "Camera FOV: " << camera.fov << std::endl;
-    std::cout << "Camera aspect ratio: " << camera.aspect_ratio << std::endl;
-
-    std::cout << "\n=== Camera Ray Generation ===" << std::endl;
-    Ray center_ray = camera.get_ray(0.5f, 0.5f);
-    std::cout << "Center ray origin: " << center_ray.origin << std::endl;
-    std::cout << "Center ray direction: " << center_ray.direction << std::endl;
-
-    Ray corner_ray = camera.get_ray(0.0f, 0.0f);
-    std::cout << "Bottom-left ray origin: " << corner_ray.origin << std::endl;
-    std::cout << "Bottom-left ray direction: " << corner_ray.direction << std::endl;
-
-    return 0;
-    */
-
-    Color red(1, 0, 0);
-    Color green(0, 1, 0);
-    Color blue(0, 0, 1);
-    Color black;
-
     int image_height = 512;
     int image_width = 512;
 
-    cout << "Red : " << red << std::endl;
-    cout << "Green : " << green << std::endl;
-    cout << "Blue : " << blue << std::endl;
-    cout << "Black : " << black << std::endl;
+    Camera camera(Point3(0, 1, 3), Point3(0, 0.3f, 0), Vec3(0, 1, 0), 60.0f, float(image_width) / float(image_height));
 
-    Color yellow = red + green;
+    Scene scene;
+    scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0)));
 
-    cout << "Yellow : " << yellow << std::endl;
-
-    // Create an image in memory, and fill it with yellow
-    // Image image(512, 512, yellow);
     Image image(image_width, image_height);
 
-    // Make a red square on the top left of the image
     for (int y = 0; y < image_height; y++) {
-      for (int x = 0; x < image_width; x++) {
-        // image.SetPixel(x, y, Color(1, 1, 1));
-        double r = double(x) / (image_width - 1);
-        double g = double(y) / (image_height - 1);
-        double b = 0.0;
-        image.SetPixel(x, y, Color(r, g, b));
-      }
+        for (int x = 0; x < image_width; x++) {
+            float u = (x + 0.5f) / float(image_width);
+            float v = 1.0f - (y + 0.5f) / float(image_height);
+            Ray r = camera.get_ray(u, v);
+
+            HitRecord rec{};
+            if (scene.hit(r, 0.001f, 1e9f, rec)) {
+                image.SetPixel(x, y, ground_color(rec.point));
+            } else {
+                image.SetPixel(x, y, sky_color(r.direction));
+            }
+        }
     }
 
     image.WriteFile("./output/test.png");
-
 }
