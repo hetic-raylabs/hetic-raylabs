@@ -12,4 +12,3 @@ class Ray {
 
     Point3 at(float t) const { return origin + t * direction; }
 };
-

@@ -2,11 +2,10 @@
 #include "core/Camera.hpp"
 #include "core/HitRecord.hpp"
 #include "core/Ray.hpp"
-#include "math/Vec3.hpp"
 #include "entities/Sphere.hpp"
-
 #include "image/Image.hpp"
 #include "math/Color.hpp"
+#include "math/Vec3.hpp"
 
 using namespace std;
 
@@ -29,8 +28,10 @@ Color ray_color(const Ray& ray, const Sphere& sphere) {
         float light_intensity = dot(rec.normal, light_direction);
 
         // S'assurer que l'intensité est entre 0.2 (ombre) et 1.0 (pleine lumière)
-        if (light_intensity < 0.2f) light_intensity = 0.2f;
-        if (light_intensity > 1.0f) light_intensity = 1.0f;
+        if (light_intensity < 0.2f)
+            light_intensity = 0.2f;
+        if (light_intensity > 1.0f)
+            light_intensity = 1.0f;
 
         // Appliquer l'éclairage à la couleur dorée
         float r = gold_r * light_intensity;
@@ -61,10 +62,10 @@ int main() {
     cout << "Rendering image of size " << image_width << "x" << image_height << endl;
 
     // Configuration de la caméra
-    Point3 camera_pos(0, 0, 0);      // Caméra à l'origine
-    Point3 look_at(0, 0, -1);        // Regarde vers -Z
-    Vec3 up(0, 1, 0);                // Vecteur "haut" = Y
-    float fov = 90.0f;               // Champ de vision de 90 degrés
+    Point3 camera_pos(0, 0, 0);  // Caméra à l'origine
+    Point3 look_at(0, 0, -1);    // Regarde vers -Z
+    Vec3 up(0, 1, 0);            // Vecteur "haut" = Y
+    float fov = 90.0f;           // Champ de vision de 90 degrés
 
     Camera camera(camera_pos, look_at, up, fov, aspect_ratio);
 
