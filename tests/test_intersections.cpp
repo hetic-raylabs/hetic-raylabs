@@ -29,8 +29,10 @@ TEST_CASE("Plane hit - back face flips normal") {
     HitRecord rec{};
     bool hit = plane.hit(ray, 0.001f, 1e9f, rec);
     CHECK(hit);
-    CHECK(rec.front_face == true);
-    CHECK(rec.normal.y == doctest::Approx(1.0f));
+    CHECK(rec.front_face == false);
+    CHECK(rec.normal.x == doctest::Approx(0.0f));
+    CHECK(rec.normal.y == doctest::Approx(-1.0f));
+    CHECK(rec.normal.z == doctest::Approx(0.0f));
     CHECK(rec.point.y == doctest::Approx(0.0f));
     CHECK(rec.t == doctest::Approx(1.0f));
 }
