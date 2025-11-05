@@ -44,8 +44,9 @@ target_compile_options(raylabs_lib PRIVATE
 # ------------------------------------------------------------
 # Dependencies (if any via Conan or FetchContent)
 # ------------------------------------------------------------
-# Example: link PNG library or JSON
-# target_link_libraries(raylabs_lib PUBLIC PNG::PNG nlohmann_json::nlohmann_json)
+if (HAVE_NLOHMANN_JSON)
+  target_link_libraries(raylabs_lib PUBLIC nlohmann_json::nlohmann_json)
+endif()
 
 # ------------------------------------------------------------
 # Build the main CLI executable
