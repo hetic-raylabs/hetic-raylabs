@@ -14,7 +14,7 @@ services:
       - ./:/work:cached # Project folder
       - ./output:/work/output # Generated images
       - ccache:/home/dev/.cache/ccache
-      - ./.conan2:/home/dev/.conan2
+      - conan2:/home/dev/.conan2
     environment:
       HOME: /home/dev
       CC: clang
