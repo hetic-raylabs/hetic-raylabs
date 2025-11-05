@@ -74,6 +74,7 @@ add_executable(raytracer src/app/main.cpp
     src/image/Image.cpp
     src/math/Color.cpp
     src/lodepng/lodepng.cpp
+    src/entities/Sphere.cpp
 )
 target_include_directories(raytracer PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
