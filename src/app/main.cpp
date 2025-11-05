@@ -5,8 +5,8 @@
 #include "math/Vec3.hpp"
 #include "entities/Sphere.hpp"
 
-#include "Color.hpp"
-#include "Image.hpp"
+#include "image/Image.hpp"
+#include "math/Color.hpp"
 
 using namespace std;
 

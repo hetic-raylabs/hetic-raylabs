@@ -2,21 +2,21 @@
 
 #include <iostream>
 #include <vector>
-#include "../math/Color.hpp"
+#include "math/Color.hpp"
 
-class Image
-{
-private:
-  unsigned int width = 0;
-  unsigned int height = 0;
-  std::vector<Color> buffer;
-public:
-  Image(unsigned int w, unsigned int h);
-  Image(unsigned int w, unsigned int h, Color c);
-  ~ Image();
+class Image {
+   private:
+    unsigned int width = 0;
+    unsigned int height = 0;
+    std::vector<Color> buffer;
 
-  void SetPixel(unsigned int x, unsigned int y, Color color);
-  Color GetPixel(unsigned int x, unsigned int y);
+   public:
+    Image(unsigned int w, unsigned int h);
+    Image(unsigned int w, unsigned int h, Color c);
+    ~Image();
 
-  void WriteFile(const char* filename);
+    void SetPixel(unsigned int x, unsigned int y, Color color);
+    Color GetPixel(unsigned int x, unsigned int y);
+
+    void WriteFile(const char* filename);
 };
