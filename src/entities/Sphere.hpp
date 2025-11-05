@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Ray.hpp"
 #include "core/HitRecord.hpp"
+#include "core/Ray.hpp"
 #include "math/Vec3.hpp"
 
 class Sphere {
