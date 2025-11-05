@@ -16,4 +16,3 @@ struct HitRecord {
         normal = front_face ? outward_normal : -outward_normal;
     }
 };
-

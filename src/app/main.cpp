@@ -3,13 +3,10 @@
 #include "core/Camera.hpp"
 #include "core/HitRecord.hpp"
 #include "core/Ray.hpp"
-#include "core/Scene.hpp"
-#include "entities/Plane.hpp"
-#include "io/JsonSceneLoader.hpp"
+#include "entities/Sphere.hpp"
+#include "image/Image.hpp"
+#include "math/Color.hpp"
 #include "math/Vec3.hpp"
-
-#include "Color.hpp"
-#include "Image.hpp"
 
 using namespace std;
 
@@ -28,41 +25,97 @@ static Color ground_color(const Point3& p) {
     return checker ? Color(0.8f, 0.8f, 0.8f) : Color(0.2f, 0.2f, 0.2f);
 }
 
-int main() {
-    int image_height = 512;
-    int image_width = 512;
+// Fonction pour calculer la couleur d'un rayon
+Color ray_color(const Ray& ray, const Sphere& sphere) {
+    HitRecord rec;
 
-    Scene scene;
-    Camera camera;
+    // Test d'intersection avec la sphère
+    // t_min = 0.0 pour éviter les auto-intersections
+    // t_max = très grand nombre (infini pratique)
+    if (sphere.hit(ray, 0.0f, 1000000.0f, rec)) {
+        // Couleur dorée de base (RGB: or = 1.0, 0.84, 0.0)
+        float gold_r = 1.0f;
+        float gold_g = 0.84f;
+        float gold_b = 0.0f;
 
-    std::string err;
-    bool loaded = io::JsonSceneLoader::loadFromFile("assets/scenes/ground_with_triangle.json", scene, camera, &err);
-    if (!loaded) {
-        cerr << "JSON load failed: " << err << ". Using fallback scene." << endl;
-        camera = Camera(Point3(0, 1, 3), Point3(0, 0.3f, 0), Vec3(0, 1, 0), 60.0f, float(image_width)/float(image_height));
-        scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0))); 
+        // Calcul d'un éclairage simple basé sur la normale
+        // On simule une lumière venant d'en haut à droite
+        Vec3 light_direction = normalize(Vec3(1.0f, 1.0f, 1.0f));
+        float light_intensity = dot(rec.normal, light_direction);
+
+        // S'assurer que l'intensité est entre 0.2 (ombre) et 1.0 (pleine lumière)
+        if (light_intensity < 0.2f)
+            light_intensity = 0.2f;
+        if (light_intensity > 1.0f)
+            light_intensity = 1.0f;
+
+        // Appliquer l'éclairage à la couleur dorée
+        float r = gold_r * light_intensity;
+        float g = gold_g * light_intensity;
+        float b = gold_b * light_intensity;
+
+        return Color(r, g, b);
     }
 
-    // S’assure que la caméra est initialisée avec l’aspect de l’image si JSON en a un autre
-    camera.aspect_ratio = float(image_width) / float(image_height);
-    camera.initialize();
+    // Si pas d'intersection, on affiche un gradient de fond (ciel)
+    Vec3 unit_direction = normalize(ray.direction);
+    float t = 0.5f * (unit_direction.y + 1.0f);
 
+    // Interpolation linéaire entre blanc (bas) et bleu ciel (haut)
+    float r = (1.0f - t) * 1.0f + t * 0.5f;
+    float g = (1.0f - t) * 1.0f + t * 0.7f;
+    float b = (1.0f - t) * 1.0f + t * 1.0f;
+
+    return Color(r, g, b);
+}
+
+int main() {
+    // Configuration de l'image
+    const float aspect_ratio = 16.0f / 9.0f;
+    const int image_width = 800;
+    const int image_height = static_cast<int>(image_width / aspect_ratio);
+
+    cout << "Rendering image of size " << image_width << "x" << image_height << endl;
+
+    // Configuration de la caméra
+    Point3 camera_pos(0, 0, 0);  // Caméra à l'origine
+    Point3 look_at(0, 0, -1);    // Regarde vers -Z
+    Vec3 up(0, 1, 0);            // Vecteur "haut" = Y
+    float fov = 90.0f;           // Champ de vision de 90 degrés
+
+    Camera camera(camera_pos, look_at, up, fov, aspect_ratio);
+
+    // Création de la sphère
+    // Centre à (0, 0, -1) devant la caméra, rayon de 0.5
+    Sphere sphere(Point3(0, 0, -1), 0.5f);
+
+    // Création de l'image
     Image image(image_width, image_height);
 
-    for (int y = 0; y < image_height; y++) {
-        for (int x = 0; x < image_width; x++) {
-            float u = (x + 0.5f) / float(image_width);
-            float v = 1.0f - (y + 0.5f) / float(image_height);
-            Ray r = camera.get_ray(u, v);
+    // Rendu : pour chaque pixel, on génère un rayon et on calcule sa couleur
+    cout << "Rendering..." << endl;
+    for (int j = image_height - 1; j >= 0; --j) {
+        if (j % 50 == 0) {
+            cout << "Scanlines remaining: " << j << endl;
+        }
 
-            HitRecord rec{};
-            if (scene.hit(r, 0.001f, 1e9f, rec)) {
-                image.SetPixel(x, y, ground_color(rec.point));
-            } else {
-                image.SetPixel(x, y, sky_color(r.direction));
-            }
+        for (int i = 0; i < image_width; ++i) {
+            // Coordonnées normalisées du pixel dans [0, 1]
+            float u = float(i) / (image_width - 1);
+            float v = float(j) / (image_height - 1);
+
+            // Génération du rayon pour ce pixel
+            Ray ray = camera.get_ray(u, v);
+
+            // Calcul de la couleur
+            Color pixel_color = ray_color(ray, sphere);
+
+            image.SetPixel(i, image_height - 1 - j, pixel_color);
         }
     }
 
-    image.WriteFile("./output/test.png");
+    cout << "Writing to file..." << endl;
+    image.WriteFile("./output/sphere.png");
+
+    return 0;
 }
