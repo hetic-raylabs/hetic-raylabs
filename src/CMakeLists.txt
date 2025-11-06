@@ -44,8 +44,11 @@ target_compile_options(raylabs_lib PRIVATE
 # ------------------------------------------------------------
 # Dependencies (if any via Conan or FetchContent)
 # ------------------------------------------------------------
+# Link third-party libraries discovered at the root CMakeLists.txt
 if (HAVE_NLOHMANN_JSON)
   target_link_libraries(raylabs_lib PUBLIC nlohmann_json::nlohmann_json)
+else()
+  message(FATAL_ERROR "nlohmann_json not found. Did you run Conan and pass the generated toolchain/deps?")
 endif()
 
 # ------------------------------------------------------------

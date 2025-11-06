@@ -69,7 +69,7 @@ endif()
 # Third-party packages (optional, via Conan/vcpkg/system)
 # Keep them at root if they are shared by lib/app/tests.
 # ------------------------------------------------------------
-find_package(nlohmann_json CONFIG QUIET)
+find_package(nlohmann_json CONFIG REQUIRED)
 find_package(stb CONFIG QUIET)
 
 # Expose availability as cache variables for children
