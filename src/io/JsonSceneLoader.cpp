@@ -17,6 +17,7 @@
 #include "materials/Lambertian.hpp"
 #include "materials/Metal.hpp"
 #include "materials/Checker.hpp"
+#include "materials/Dielectric.hpp"
 #include "materials/Material.hpp"
 #include "math/Color.hpp"
 
@@ -99,6 +100,9 @@ std::shared_ptr<Material> parse_material_inline(const json& m) {
         auto c2 = m.contains("color2") ? color3_from(m["color2"], "color2") : io::Color3f{0.2f, 0.2f, 0.2f};
         float scale = m.contains("scale") ? m["scale"].get<float>() : 1.0f;
         return std::make_shared<Checker>(Color(c1.r, c1.g, c1.b), Color(c2.r, c2.g, c2.b), scale);
+    } else if (type == "dielectric" || type == "glass") {
+        float ior = m.contains("ior") ? m["ior"].get<float>() : 1.5f;
+        return std::make_shared<Dielectric>(ior);
     }
     
     return nullptr;
