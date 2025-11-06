@@ -1,0 +1,85 @@
+{
+    "meta": {
+        "name": "Sample Scene - Glass and Metal",
+        "description": "A simple demonstration scene featuring a reflective metal sphere, a glass sphere, and a diffuse ground plane under two point lights.",
+        "author": "RayLabs Team",
+        "version": "1.0.0"
+    },
+
+    "image": {
+        "width": 800,
+        "height": 450,
+        "samples": 16,
+        "max_depth": 4,
+        "output": "output/sample.png"
+    },
+
+    "camera": {
+        "look_from": [3.0, 2.0, 5.0],
+        "look_at": [0.0, 0.5, 0.0],
+        "up": [0.0, 1.0, 0.0],
+        "vfov": 45.0,
+        "aperture": 0.0,
+        "focus_dist": 5.0
+    },
+
+    "materials": {
+        "ground": {
+            "type": "lambertian",
+            "albedo": [0.8, 0.8, 0.0]
+        },
+        "red": {
+            "type": "lambertian",
+            "albedo": [0.8, 0.1, 0.1]
+        },
+        "metal_silver": {
+            "type": "metal",
+            "albedo": [0.9, 0.9, 0.9],
+            "roughness": 0.05
+        },
+        "glass": {
+            "type": "dielectric",
+            "ior": 1.5
+        }
+    },
+
+    "objects": [
+        {
+            "type": "plane",
+            "point": [0.0, 0.0, 0.0],
+            "normal": [0.0, 1.0, 0.0],
+            "material": "ground"
+        },
+        {
+            "type": "sphere",
+            "center": [0.0, 0.5, 0.0],
+            "radius": 0.5,
+            "material": "glass"
+        },
+        {
+            "type": "sphere",
+            "center": [-1.2, 0.5, -0.3],
+            "radius": 0.5,
+            "material": "red"
+        },
+        {
+            "type": "sphere",
+            "center": [1.2, 0.5, 0.2],
+            "radius": 0.5,
+            "material": "metal_silver"
+        }
+    ],
+
+    "lights": [
+        {
+            "type": "point",
+            "position": [2.0, 4.0, 2.0],
+            "intensity": [10.0, 10.0, 10.0]
+        },
+        {
+            "type": "point",
+            "position": [-3.0, 3.0, 1.0],
+            "intensity": [5.0, 4.5, 4.0]
+        }
+    ]
+}
