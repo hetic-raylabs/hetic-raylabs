@@ -9,6 +9,9 @@
 #include "image/Image.hpp"
 #include "math/Color.hpp"
 #include "math/Vec3.hpp"
+#include "materials/Lambertian.hpp"
+#include "materials/Metal.hpp"
+#include "materials/Checker.hpp"
 
 using namespace std;
 
@@ -20,37 +23,27 @@ static Color sky_color(const Vec3& dir) {
 	return Color(r, g, b);
 }
 
-static Color ground_color(const Point3& p) {
-	int xi = static_cast<int>(floorf(p.x));
-	int zi = static_cast<int>(floorf(p.z));
-	bool checker = ((xi + zi) & 1) == 0;
-	return checker ? Color(0.8f, 0.8f, 0.8f) : Color(0.2f, 0.2f, 0.2f);
-}
+static Color ray_color(const Ray& ray, const Scene& scene, int depth) {
+	if (depth <= 0) {
+		return Color(0.0f, 0.0f, 0.0f);
+	}
 
-static Color sphere_color(const HitRecord& rec) {
-	float gold_r = 1.0f;
-	float gold_g = 0.84f;
-	float gold_b = 0.0f;
-
-	Vec3 light_direction = normalize(Vec3(1.0f, 1.0f, 1.0f));
-	float light_intensity = dot(rec.normal, light_direction);
-
-	if (light_intensity < 0.2f) light_intensity = 0.2f;
-	if (light_intensity > 1.0f) light_intensity = 1.0f;
-
-	return Color(gold_r * light_intensity, gold_g * light_intensity, gold_b * light_intensity);
-}
-
-static Color ray_color(const Ray& ray, const Scene& scene) {
 	HitRecord rec;
 	if (scene.hit(ray, 0.001f, 1e9f, rec)) {
-		// Identifier si c'est une sphere ou un plane par la position
-		// Simple heuristique: si le point est proche du plan y=0, c'est le plane
-		if (std::abs(rec.point.y) < 0.01f) {
-			return ground_color(rec.point);
-		} else {
-			return sphere_color(rec);
+		if (rec.material) {
+			Ray scattered;
+			Color attenuation;
+			if (rec.material->scatter(ray, rec, attenuation, scattered)) {
+				Color recurse_color = ray_color(scattered, scene, depth - 1);
+				return Color(
+					attenuation.R() * recurse_color.R(),
+					attenuation.G() * recurse_color.G(),
+					attenuation.B() * recurse_color.B()
+				);
+			}
+			return Color(0, 0, 0);
 		}
+		return Color(0.5f, 0.5f, 0.5f);
 	}
 	return sky_color(ray.direction);
 }
@@ -65,8 +58,10 @@ int main() {
 	Camera camera(Point3(0, 1, 3), Point3(0, 0.3f, 0), Vec3(0, 1, 0), 60.0f, aspect_ratio);
 
 	Scene scene;
-	scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0)));
-	scene.add(std::make_shared<Sphere>(Point3(0, 0.5f, -2.0f), 0.5f));
+	auto ground_material = std::make_shared<Checker>(Color(0.8f, 0.8f, 0.8f), Color(0.2f, 0.2f, 0.2f), 1.0f);
+	auto sphere_material = std::make_shared<Metal>(Color(0.8f, 0.8f, 0.8f), 0.3f);
+	scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0)), ground_material);
+	scene.add(std::make_shared<Sphere>(Point3(0, 0.5f, -2.0f), 0.5f), sphere_material);
 
 	Image image(image_width, image_height);
 
@@ -77,7 +72,7 @@ int main() {
 			float v = 1.0f - (y + 0.5f) / float(image_height);
 			Ray r = camera.get_ray(u, v);
 
-			Color pixel_color = ray_color(r, scene);
+			Color pixel_color = ray_color(r, scene, 4);
 			image.SetPixel(x, y, pixel_color);
 		}
 	}
