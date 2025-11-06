@@ -1,7 +1,10 @@
 #include <iostream>
+#include <memory>
 #include "core/Camera.hpp"
 #include "core/HitRecord.hpp"
 #include "core/Ray.hpp"
+#include "core/Scene.hpp"
+#include "entities/Plane.hpp"
 #include "entities/Sphere.hpp"
 #include "image/Image.hpp"
 #include "math/Color.hpp"
@@ -9,97 +12,78 @@
 
 using namespace std;
 
-// Fonction pour calculer la couleur d'un rayon
-Color ray_color(const Ray& ray, const Sphere& sphere) {
-    HitRecord rec;
+static Color sky_color(const Vec3& dir) {
+	float t = 0.5f * (normalize(dir).y + 1.0f);
+	float r = (1.0f - t) * 1.0f + t * 0.5f;
+	float g = (1.0f - t) * 1.0f + t * 0.7f;
+	float b = (1.0f - t) * 1.0f + t * 1.0f;
+	return Color(r, g, b);
+}
 
-    // Test d'intersection avec la sphère
-    // t_min = 0.0 pour éviter les auto-intersections
-    // t_max = très grand nombre (infini pratique)
-    if (sphere.hit(ray, 0.0f, 1000000.0f, rec)) {
-        // Couleur dorée de base (RGB: or = 1.0, 0.84, 0.0)
-        float gold_r = 1.0f;
-        float gold_g = 0.84f;
-        float gold_b = 0.0f;
+static Color ground_color(const Point3& p) {
+	int xi = static_cast<int>(floorf(p.x));
+	int zi = static_cast<int>(floorf(p.z));
+	bool checker = ((xi + zi) & 1) == 0;
+	return checker ? Color(0.8f, 0.8f, 0.8f) : Color(0.2f, 0.2f, 0.2f);
+}
 
-        // Calcul d'un éclairage simple basé sur la normale
-        // On simule une lumière venant d'en haut à droite
-        Vec3 light_direction = normalize(Vec3(1.0f, 1.0f, 1.0f));
-        float light_intensity = dot(rec.normal, light_direction);
+static Color sphere_color(const HitRecord& rec) {
+	float gold_r = 1.0f;
+	float gold_g = 0.84f;
+	float gold_b = 0.0f;
 
-        // S'assurer que l'intensité est entre 0.2 (ombre) et 1.0 (pleine lumière)
-        if (light_intensity < 0.2f)
-            light_intensity = 0.2f;
-        if (light_intensity > 1.0f)
-            light_intensity = 1.0f;
+	Vec3 light_direction = normalize(Vec3(1.0f, 1.0f, 1.0f));
+	float light_intensity = dot(rec.normal, light_direction);
 
-        // Appliquer l'éclairage à la couleur dorée
-        float r = gold_r * light_intensity;
-        float g = gold_g * light_intensity;
-        float b = gold_b * light_intensity;
+	if (light_intensity < 0.2f) light_intensity = 0.2f;
+	if (light_intensity > 1.0f) light_intensity = 1.0f;
 
-        return Color(r, g, b);
-    }
+	return Color(gold_r * light_intensity, gold_g * light_intensity, gold_b * light_intensity);
+}
 
-    // Si pas d'intersection, on affiche un gradient de fond (ciel)
-    Vec3 unit_direction = normalize(ray.direction);
-    float t = 0.5f * (unit_direction.y + 1.0f);
-
-    // Interpolation linéaire entre blanc (bas) et bleu ciel (haut)
-    float r = (1.0f - t) * 1.0f + t * 0.5f;
-    float g = (1.0f - t) * 1.0f + t * 0.7f;
-    float b = (1.0f - t) * 1.0f + t * 1.0f;
-
-    return Color(r, g, b);
+static Color ray_color(const Ray& ray, const Scene& scene) {
+	HitRecord rec;
+	if (scene.hit(ray, 0.001f, 1e9f, rec)) {
+		// Identifier si c'est une sphere ou un plane par la position
+		// Simple heuristique: si le point est proche du plan y=0, c'est le plane
+		if (std::abs(rec.point.y) < 0.01f) {
+			return ground_color(rec.point);
+		} else {
+			return sphere_color(rec);
+		}
+	}
+	return sky_color(ray.direction);
 }
 
 int main() {
-    // Configuration de l'image
-    const float aspect_ratio = 16.0f / 9.0f;
-    const int image_width = 800;
-    const int image_height = static_cast<int>(image_width / aspect_ratio);
+	const float aspect_ratio = 16.0f / 9.0f;
+	const int image_width = 800;
+	const int image_height = static_cast<int>(image_width / aspect_ratio);
 
-    cout << "Rendering image of size " << image_width << "x" << image_height << endl;
+	cout << "Rendering image of size " << image_width << "x" << image_height << endl;
 
-    // Configuration de la caméra
-    Point3 camera_pos(0, 0, 0);  // Caméra à l'origine
-    Point3 look_at(0, 0, -1);    // Regarde vers -Z
-    Vec3 up(0, 1, 0);            // Vecteur "haut" = Y
-    float fov = 90.0f;           // Champ de vision de 90 degrés
+	Camera camera(Point3(0, 1, 3), Point3(0, 0.3f, 0), Vec3(0, 1, 0), 60.0f, aspect_ratio);
 
-    Camera camera(camera_pos, look_at, up, fov, aspect_ratio);
+	Scene scene;
+	scene.add(std::make_shared<Plane>(Point3(0, 0, 0), Vec3(0, 1, 0)));
+	scene.add(std::make_shared<Sphere>(Point3(0, 0.5f, -2.0f), 0.5f));
 
-    // Création de la sphère
-    // Centre à (0, 0, -1) devant la caméra, rayon de 0.5
-    Sphere sphere(Point3(0, 0, -1), 0.5f);
+	Image image(image_width, image_height);
 
-    // Création de l'image
-    Image image(image_width, image_height);
+	cout << "Rendering..." << endl;
+	for (int y = 0; y < image_height; y++) {
+		for (int x = 0; x < image_width; x++) {
+			float u = (x + 0.5f) / float(image_width);
+			float v = 1.0f - (y + 0.5f) / float(image_height);
+			Ray r = camera.get_ray(u, v);
 
-    // Rendu : pour chaque pixel, on génère un rayon et on calcule sa couleur
-    cout << "Rendering..." << endl;
-    for (int j = image_height - 1; j >= 0; --j) {
-        if (j % 50 == 0) {
-            cout << "Scanlines remaining: " << j << endl;
-        }
+			Color pixel_color = ray_color(r, scene);
+			image.SetPixel(x, y, pixel_color);
+		}
+	}
 
-        for (int i = 0; i < image_width; ++i) {
-            // Coordonnées normalisées du pixel dans [0, 1]
-            float u = float(i) / (image_width - 1);
-            float v = float(j) / (image_height - 1);
+	cout << "Writing to file..." << endl;
+	image.WriteFile("./output/test.png");
 
-            // Génération du rayon pour ce pixel
-            Ray ray = camera.get_ray(u, v);
-
-            // Calcul de la couleur
-            Color pixel_color = ray_color(ray, sphere);
-
-            image.SetPixel(i, image_height - 1 - j, pixel_color);
-        }
-    }
-
-    cout << "Writing to file..." << endl;
-    image.WriteFile("./output/sphere.png");
-
-    return 0;
+	return 0;
 }
