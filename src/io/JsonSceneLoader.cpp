@@ -8,6 +8,12 @@
 
 #include <nlohmann/json.hpp>
 #include "io/Logger.hpp"
+#include "core/Scene.hpp"
+#include "core/Camera.hpp"
+#include "entities/Plane.hpp"
+#include "entities/Sphere.hpp"
+#include "entities/Triangle.hpp"
+#include "math/Vec3.hpp"
 
 using json = nlohmann::json;
 
@@ -262,6 +268,91 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
 
     Logger::info("Loaded scene from: " + origin_hint);
     return scene;
+}
+
+// Compatibility methods for old API
+bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scene, std::string* err) {
+    try {
+        json j = json::parse(json_text);
+        
+        // Parse objects
+        if (j.contains("objects") && j["objects"].is_array()) {
+            for (const auto& obj : j["objects"]) {
+                if (!obj.contains("type")) continue;
+                std::string type = obj["type"].get<std::string>();
+                
+                if (type == "plane") {
+                    if (obj.contains("point") && obj.contains("normal")) {
+                        auto point = vec3_from(obj["point"], "point");
+                        auto normal = vec3_from(obj["normal"], "normal");
+                        scene.add(std::make_shared<Plane>(
+                            Point3(point.x, point.y, point.z),
+                            Vec3(normal.x, normal.y, normal.z)
+                        ));
+                    }
+                } else if (type == "sphere") {
+                    if (obj.contains("center") && obj.contains("radius")) {
+                        auto center = vec3_from(obj["center"], "center");
+                        float radius = obj["radius"].get<float>();
+                        scene.add(std::make_shared<Sphere>(
+                            Point3(center.x, center.y, center.z),
+                            radius
+                        ));
+                    }
+                } else if (type == "triangle") {
+                    if (obj.contains("a") && obj.contains("b") && obj.contains("c")) {
+                        auto a = vec3_from(obj["a"], "a");
+                        auto b = vec3_from(obj["b"], "b");
+                        auto c = vec3_from(obj["c"], "c");
+                        scene.add(std::make_shared<Triangle>(
+                            Point3(a.x, a.y, a.z),
+                            Point3(b.x, b.y, b.z),
+                            Point3(c.x, c.y, c.z)
+                        ));
+                    }
+                }
+            }
+        }
+        return true;
+    } catch (const std::exception& e) {
+        if (err) *err = e.what();
+        return false;
+    }
+}
+
+bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scene, ::Camera& camera, std::string* err) {
+    try {
+        json j = json::parse(json_text);
+        
+        // Parse camera
+        if (j.contains("camera")) {
+            const auto& cam = j["camera"];
+            if (cam.contains("position")) {
+                auto pos = vec3_from(cam["position"], "camera.position");
+                camera.position = Point3(pos.x, pos.y, pos.z);
+            }
+            if (cam.contains("look_at")) {
+                auto look = vec3_from(cam["look_at"], "camera.look_at");
+                camera.look_at = Point3(look.x, look.y, look.z);
+            }
+            if (cam.contains("up")) {
+                auto up_vec = vec3_from(cam["up"], "camera.up");
+                camera.up = Vec3(up_vec.x, up_vec.y, up_vec.z);
+            }
+            if (cam.contains("fov")) {
+                camera.fov = cam["fov"].get<float>();
+            }
+            if (cam.contains("aspect_ratio")) {
+                camera.aspect_ratio = cam["aspect_ratio"].get<float>();
+            }
+        }
+        
+        // Parse objects (reuse the other method)
+        return loadFromString(json_text, scene, err);
+    } catch (const std::exception& e) {
+        if (err) *err = e.what();
+        return false;
+    }
 }
 
 }  // namespace io

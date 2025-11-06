@@ -6,6 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
+// Forward declarations
+class Scene;
+class Camera;
+
 namespace io {
 
 struct Vec3f {
@@ -89,10 +93,17 @@ class JsonSceneLoader {
     /// Throws std::runtime_error on invalid input.
     static SceneDTO load_from_file(const std::string& path);
 
-   private:
-    // helpers (implemented in .cpp)
-    static SceneDTO parse_json_string(const std::string& json_text, const std::string& origin_hint);
+    /// Parse a JSON string into strongly-typed DTOs.
+    /// Throws std::runtime_error on invalid input.
+    static SceneDTO parse_json_string(const std::string& json_text, const std::string& origin_hint = "string");
 
+    // Compatibility methods for old API (for tests)
+    /// Legacy: Load from string and populate Scene (for tests)
+    static bool loadFromString(const std::string& json_text, ::Scene& scene, std::string* err = nullptr);
+    /// Legacy: Load from string and populate Scene and Camera (for tests)
+    static bool loadFromString(const std::string& json_text, ::Scene& scene, ::Camera& camera, std::string* err = nullptr);
+
+   private:
     // disallow instance
     JsonSceneLoader() = delete;
 };
