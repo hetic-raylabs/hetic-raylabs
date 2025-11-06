@@ -11,7 +11,7 @@ public:
 
 	Lambertian(const Color& a) : albedo(a) {}
 
-	bool scatter(const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scattered) const override {
+	bool scatter([[maybe_unused]] const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scattered) const override {
 		Vec3 scatter_direction = rec.normal + random_unit_vector();
 		
 		if (scatter_direction.length_squared() < 1e-8f) {

@@ -14,6 +14,11 @@
 #include "entities/Sphere.hpp"
 #include "entities/Triangle.hpp"
 #include "math/Vec3.hpp"
+#include "materials/Lambertian.hpp"
+#include "materials/Metal.hpp"
+#include "materials/Checker.hpp"
+#include "materials/Material.hpp"
+#include "math/Color.hpp"
 
 using json = nlohmann::json;
 
@@ -70,6 +75,33 @@ io::LightType parse_light_type(const std::string& s) {
     if (t == "point" || t == "pointlight")
         return io::LightType::Point;
     throw std::runtime_error("Unknown light type: " + s);
+}
+
+std::shared_ptr<Material> parse_material_inline(const json& m) {
+    if (!m.contains("type")) {
+        return nullptr;
+    }
+    
+    std::string type = m["type"].get<std::string>();
+    
+    if (type == "lambertian") {
+        if (m.contains("albedo")) {
+            auto albedo = color3_from(m["albedo"], "albedo");
+            return std::make_shared<Lambertian>(Color(albedo.r, albedo.g, albedo.b));
+        }
+        return std::make_shared<Lambertian>(Color(0.8f, 0.8f, 0.8f));
+    } else if (type == "metal") {
+        auto albedo = m.contains("albedo") ? color3_from(m["albedo"], "albedo") : io::Color3f{0.8f, 0.8f, 0.8f};
+        float fuzz = m.contains("fuzz") ? m["fuzz"].get<float>() : 0.0f;
+        return std::make_shared<Metal>(Color(albedo.r, albedo.g, albedo.b), fuzz);
+    } else if (type == "checker") {
+        auto c1 = m.contains("color1") ? color3_from(m["color1"], "color1") : io::Color3f{0.8f, 0.8f, 0.8f};
+        auto c2 = m.contains("color2") ? color3_from(m["color2"], "color2") : io::Color3f{0.2f, 0.2f, 0.2f};
+        float scale = m.contains("scale") ? m["scale"].get<float>() : 1.0f;
+        return std::make_shared<Checker>(Color(c1.r, c1.g, c1.b), Color(c2.r, c2.g, c2.b), scale);
+    }
+    
+    return nullptr;
 }
 
 }  // anonymous namespace
@@ -281,34 +313,54 @@ bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scen
                 if (!obj.contains("type")) continue;
                 std::string type = obj["type"].get<std::string>();
                 
+                std::shared_ptr<Material> mat = nullptr;
+                if (obj.contains("material")) {
+                    mat = parse_material_inline(obj["material"]);
+                }
+                
                 if (type == "plane") {
                     if (obj.contains("point") && obj.contains("normal")) {
                         auto point = vec3_from(obj["point"], "point");
                         auto normal = vec3_from(obj["normal"], "normal");
-                        scene.add(std::make_shared<Plane>(
+                        auto plane = std::make_shared<Plane>(
                             Point3(point.x, point.y, point.z),
                             Vec3(normal.x, normal.y, normal.z)
-                        ));
+                        );
+                        if (mat) {
+                            scene.add(plane, mat);
+                        } else {
+                            scene.add(plane);
+                        }
                     }
                 } else if (type == "sphere") {
                     if (obj.contains("center") && obj.contains("radius")) {
                         auto center = vec3_from(obj["center"], "center");
                         float radius = obj["radius"].get<float>();
-                        scene.add(std::make_shared<Sphere>(
+                        auto sphere = std::make_shared<Sphere>(
                             Point3(center.x, center.y, center.z),
                             radius
-                        ));
+                        );
+                        if (mat) {
+                            scene.add(sphere, mat);
+                        } else {
+                            scene.add(sphere);
+                        }
                     }
                 } else if (type == "triangle") {
                     if (obj.contains("a") && obj.contains("b") && obj.contains("c")) {
                         auto a = vec3_from(obj["a"], "a");
                         auto b = vec3_from(obj["b"], "b");
                         auto c = vec3_from(obj["c"], "c");
-                        scene.add(std::make_shared<Triangle>(
+                        auto tri = std::make_shared<Triangle>(
                             Point3(a.x, a.y, a.z),
                             Point3(b.x, b.y, b.z),
                             Point3(c.x, c.y, c.z)
-                        ));
+                        );
+                        if (mat) {
+                            scene.add(tri, mat);
+                        } else {
+                            scene.add(tri);
+                        }
                     }
                 }
             }
