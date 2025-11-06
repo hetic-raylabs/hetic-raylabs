@@ -1,4 +1,11 @@
 {
+  "image": {
+    "width": 800,
+    "height": 450,
+    "samples": 1000,
+    "max_depth": 4,
+    "output": "output/multiple_spheres.png"
+  },
   "camera": {
     "position": [0, 1, 3],
     "look_at": [0, 0.3, 0],

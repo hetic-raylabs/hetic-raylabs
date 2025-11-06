@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
 
 #include <nlohmann/json.hpp>
 #include "io/Logger.hpp"
@@ -59,6 +60,8 @@ io::MaterialType parse_material_type(const std::string& s) {
         return io::MaterialType::Metal;
     if (t == "dielectric" || t == "glass")
         return io::MaterialType::Dielectric;
+    if (t == "checker")
+        return io::MaterialType::Checker;
     throw std::runtime_error("Unknown material type: " + s);
 }
 
@@ -162,13 +165,20 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
     // ---- camera ----
     if (j.contains("camera")) {
         const auto& jc = j.at("camera");
+        // Support both "look_from" and "position" for camera position
         if (jc.contains("look_from"))
             scene.camera.look_from = vec3_from(jc.at("look_from"), "camera.look_from");
+        else if (jc.contains("position"))
+            scene.camera.look_from = vec3_from(jc.at("position"), "camera.position");
         if (jc.contains("look_at"))
             scene.camera.look_at = vec3_from(jc.at("look_at"), "camera.look_at");
         if (jc.contains("up"))
             scene.camera.up = vec3_from(jc.at("up"), "camera.up");
-        scene.camera.vfov_deg = get_or<float>(jc, "vfov", 45.f);
+        // Support both "vfov" and "fov" for field of view
+        if (jc.contains("vfov"))
+            scene.camera.vfov_deg = jc.at("vfov").get<float>();
+        else if (jc.contains("fov"))
+            scene.camera.vfov_deg = jc.at("fov").get<float>();
         scene.camera.aperture = get_or<float>(jc, "aperture", 0.f);
         scene.camera.focus_dist = get_or<float>(jc, "focus_dist", 1.f);
         if (scene.camera.vfov_deg <= 1.f || scene.camera.vfov_deg >= 179.f) {
@@ -239,7 +249,36 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
                         throw std::runtime_error("Sphere requires 'center', 'radius', 'material'");
                     obj.sphere.center = vec3_from(o.at("center"), "objects[*].center");
                     obj.sphere.radius = o.at("radius").get<float>();
-                    obj.sphere.material_id = o.at("material").get<std::string>();
+                    // Support both string (material_id) and object (inline material)
+                    if (o.at("material").is_string()) {
+                        obj.sphere.material_id = o.at("material").get<std::string>();
+                    } else if (o.at("material").is_object()) {
+                        // Inline material: create a unique ID and add to materials map
+                        std::string inline_id = "__inline_" + std::to_string(scene.objects.size());
+                        const auto& mat_obj = o.at("material");
+                        MaterialDTO md;
+                        md.id = inline_id;
+                        md.type = parse_material_type(mat_obj.at("type").get<std::string>());
+                        if (mat_obj.contains("albedo")) {
+                            md.albedo = color3_from(mat_obj.at("albedo"), "albedo");
+                        }
+                        if (md.type == MaterialType::Metal && mat_obj.contains("fuzz")) {
+                            md.roughness = mat_obj.at("fuzz").get<float>();
+                        } else if (md.type == MaterialType::Metal && mat_obj.contains("roughness")) {
+                            md.roughness = mat_obj.at("roughness").get<float>();
+                        }
+                        if (md.type == MaterialType::Dielectric && mat_obj.contains("ior")) {
+                            md.ior = mat_obj.at("ior").get<float>();
+                        }
+                        if (md.type == MaterialType::Checker && mat_obj.contains("color1") && mat_obj.contains("color2")) {
+                            md.albedo = color3_from(mat_obj.at("color1"), "color1");
+                            // Note: color2 is not stored in MaterialDTO, will use default in populateScene
+                        }
+                        scene.materials.emplace(inline_id, md);
+                        obj.sphere.material_id = inline_id;
+                    } else {
+                        throw std::runtime_error("Sphere.material must be a string (id) or object (inline)");
+                    }
                     if (obj.sphere.radius <= 0.f)
                         throw std::runtime_error("Sphere.radius must be > 0");
                 } break;
@@ -248,7 +287,36 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
                         throw std::runtime_error("Plane requires 'point', 'normal', 'material'");
                     obj.plane.point = vec3_from(o.at("point"), "objects[*].point");
                     obj.plane.normal = vec3_from(o.at("normal"), "objects[*].normal");
-                    obj.plane.material_id = o.at("material").get<std::string>();
+                    // Support both string (material_id) and object (inline material)
+                    if (o.at("material").is_string()) {
+                        obj.plane.material_id = o.at("material").get<std::string>();
+                    } else if (o.at("material").is_object()) {
+                        // Inline material: create a unique ID and add to materials map
+                        std::string inline_id = "__inline_" + std::to_string(scene.objects.size());
+                        const auto& mat_obj = o.at("material");
+                        MaterialDTO md;
+                        md.id = inline_id;
+                        md.type = parse_material_type(mat_obj.at("type").get<std::string>());
+                        if (mat_obj.contains("albedo")) {
+                            md.albedo = color3_from(mat_obj.at("albedo"), "albedo");
+                        }
+                        if (md.type == MaterialType::Metal && mat_obj.contains("fuzz")) {
+                            md.roughness = mat_obj.at("fuzz").get<float>();
+                        } else if (md.type == MaterialType::Metal && mat_obj.contains("roughness")) {
+                            md.roughness = mat_obj.at("roughness").get<float>();
+                        }
+                        if (md.type == MaterialType::Dielectric && mat_obj.contains("ior")) {
+                            md.ior = mat_obj.at("ior").get<float>();
+                        }
+                        if (md.type == MaterialType::Checker && mat_obj.contains("color1") && mat_obj.contains("color2")) {
+                            md.albedo = color3_from(mat_obj.at("color1"), "color1");
+                            // Note: color2 is not stored in MaterialDTO, will use default in populateScene
+                        }
+                        scene.materials.emplace(inline_id, md);
+                        obj.plane.material_id = inline_id;
+                    } else {
+                        throw std::runtime_error("Plane.material must be a string (id) or object (inline)");
+                    }
                 } break;
             }
 
@@ -408,6 +476,69 @@ bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scen
     } catch (const std::exception& e) {
         if (err) *err = e.what();
         return false;
+    }
+}
+
+void JsonSceneLoader::populateScene(const SceneDTO& dto, ::Scene& scene, ::Camera& camera) {
+    // Populate camera
+    camera.position = Point3(dto.camera.look_from.x, dto.camera.look_from.y, dto.camera.look_from.z);
+    camera.look_at = Point3(dto.camera.look_at.x, dto.camera.look_at.y, dto.camera.look_at.z);
+    camera.up = Vec3(dto.camera.up.x, dto.camera.up.y, dto.camera.up.z);
+    camera.fov = dto.camera.vfov_deg;
+    camera.aspect_ratio = static_cast<float>(dto.image.width) / static_cast<float>(dto.image.height);
+    camera.initialize();
+
+    // Create materials map
+    std::unordered_map<std::string, std::shared_ptr<Material>> material_map;
+    for (const auto& [id, md] : dto.materials) {
+        std::shared_ptr<Material> mat;
+        switch (md.type) {
+            case MaterialType::Lambertian:
+                mat = std::make_shared<Lambertian>(Color(md.albedo.r, md.albedo.g, md.albedo.b));
+                break;
+            case MaterialType::Metal:
+                mat = std::make_shared<Metal>(Color(md.albedo.r, md.albedo.g, md.albedo.b), md.roughness);
+                break;
+            case MaterialType::Dielectric:
+                mat = std::make_shared<Dielectric>(md.ior);
+                break;
+            case MaterialType::Checker:
+                // For Checker, we need color1 and color2, but MaterialDTO only has albedo
+                // This is a limitation - we'll use albedo for color1 and a default for color2
+                // TODO: Extend MaterialDTO to support Checker properly
+                mat = std::make_shared<Checker>(Color(md.albedo.r, md.albedo.g, md.albedo.b),
+                                                 Color(0.2f, 0.2f, 0.2f), 1.0f);
+                break;
+        }
+        material_map[id] = mat;
+    }
+
+    // Populate scene with objects
+    for (const auto& obj : dto.objects) {
+        std::shared_ptr<Material> mat = nullptr;
+        if (!obj.sphere.material_id.empty()) {
+            auto it = material_map.find(obj.sphere.material_id);
+            if (it != material_map.end()) {
+                mat = it->second;
+            }
+        } else if (!obj.plane.material_id.empty()) {
+            auto it = material_map.find(obj.plane.material_id);
+            if (it != material_map.end()) {
+                mat = it->second;
+            }
+        }
+
+        switch (obj.type) {
+            case ObjectType::Sphere: {
+                Point3 center(obj.sphere.center.x, obj.sphere.center.y, obj.sphere.center.z);
+                scene.add(std::make_shared<Sphere>(center, obj.sphere.radius), mat);
+            } break;
+            case ObjectType::Plane: {
+                Point3 point(obj.plane.point.x, obj.plane.point.y, obj.plane.point.z);
+                Vec3 normal(obj.plane.normal.x, obj.plane.normal.y, obj.plane.normal.z);
+                scene.add(std::make_shared<Plane>(point, normal), mat);
+            } break;
+        }
     }
 }
 

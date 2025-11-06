@@ -37,7 +37,7 @@ struct ImageDTO {
     std::string output_path = "output/render.png";
 };
 
-enum class MaterialType { Lambertian, Metal, Dielectric };
+enum class MaterialType { Lambertian, Metal, Dielectric, Checker };
 
 struct MaterialDTO {
     std::string id;  // user-defined handle
@@ -96,6 +96,9 @@ class JsonSceneLoader {
     /// Parse a JSON string into strongly-typed DTOs.
     /// Throws std::runtime_error on invalid input.
     static SceneDTO parse_json_string(const std::string& json_text, const std::string& origin_hint = "string");
+
+    /// Populate Scene and Camera from SceneDTO
+    static void populateScene(const SceneDTO& dto, ::Scene& scene, ::Camera& camera);
 
     // Compatibility methods for old API (for tests)
     /// Legacy: Load from string and populate Scene (for tests)
