@@ -1,2 +1,32 @@
-build-release/
+# VCS & editor
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Build & cache
 build/
+cmake-build*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+.cache/
+*.o
+*.obj
+*.pch
+*.pdb
+*.ilk
+
+# Outputs
+output/
+*.png
+*.ppm
+
+# Python/Conan/npm
+__pycache__/
+*.pyc
+node_modules/
+.home/

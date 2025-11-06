@@ -4,19 +4,22 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        UID: ${UID-1000}
-        GID: ${GID-1000}
-        USERNAME: ${USERNAME-dev}
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        USERNAME: ${USERNAME:-dev}
     image: raytracer-dev:latest
     container_name: raytracer-dev
     working_dir: /work
+
     volumes:
-      - ./:/work:cached # Project folder
-      - ./output:/work/output # Generated images
-      - ccache:/home/dev/.cache/ccache
-      - conan2:/home/dev/.conan2
+      - ./:/work:rw
+      - ./output:/work/output:rw
+      # Named volumes for caches avoid Windows permission quirks
+      - ccache:/home/${USERNAME:-dev}/.cache/ccache
+      - conan2:/home/${USERNAME:-dev}/.conan2
+
     environment:
-      HOME: /home/dev
+      HOME: /home/${USERNAME:-dev}
       CC: clang
       CXX: clang++
       CMAKE_GENERATOR: Ninja
@@ -24,11 +27,14 @@ services:
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
+      # Set to 1 to remain root (debug), else entrypoint will drop to dev
+      USE_ROOT: ${USE_ROOT:-0}
+
     tty: true
     stdin_open: true
     ports:
       - "127.0.0.1:13000:13000"
-    user: "${UID-1000}:${GID-1000}"
+
 volumes:
   ccache:
   conan2:
