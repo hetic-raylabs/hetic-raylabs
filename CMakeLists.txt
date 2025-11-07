@@ -82,11 +82,13 @@ set(HAVE_STB ${stb_FOUND} CACHE BOOL "stb available")
 add_subdirectory(src)
 
 # ------------------------------------------------------------
-# Testing (CTest toggled by BUILD_TESTING)
-# - tests/CMakeLists.txt creates test targets and registers them
+# Testing (CTest must come first to define BUILD_TESTING)
 # ------------------------------------------------------------
 include(CTest)
+
 if (BUILD_TESTING)
+  # When tests are enabled, doctest is required (provided by Conan).
+  find_package(doctest CONFIG REQUIRED)
   add_subdirectory(tests)
 endif()
 

@@ -9,7 +9,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 # ------------------------------------------------------------
-# Early exit if testing is disabled
+# Early exit if testing is disabled (defensive; parent guards already)
 # ------------------------------------------------------------
 if(NOT BUILD_TESTING)
   message(STATUS "[tests] BUILD_TESTING=OFF -> skipping tests configuration")
@@ -24,22 +24,46 @@ option(RAYLABS_TEST_ASAN "Enable AddressSanitizer for test targets (Clang/GCC)" 
 option(RAYLABS_ENABLE_COVERAGE "Enable coverage flags for test targets (Clang/GCC)" OFF)
 
 # ------------------------------------------------------------
-# Dependencies (doctest)
+# Robust doctest discovery + include resolution
 # ------------------------------------------------------------
 find_package(doctest CONFIG QUIET)
-if(NOT doctest_FOUND AND RAYLABS_FETCH_DOCTEST)
+
+set(_DOCTEST_INC "")
+
+if (doctest_FOUND)
+  get_target_property(_DOCTEST_INC doctest::doctest INTERFACE_INCLUDE_DIRECTORIES)
+endif()
+
+# Fallbacks for Conan-generated variables
+if (NOT _DOCTEST_INC OR _DOCTEST_INC STREQUAL "NOTFOUND")
+  if(DEFINED doctest_INCLUDE_DIRS)
+    set(_DOCTEST_INC ${doctest_INCLUDE_DIRS})
+  elseif(DEFINED doctest_INCLUDE_DIRS_RELEASE)
+    set(_DOCTEST_INC ${doctest_INCLUDE_DIRS_RELEASE})
+  elseif(DEFINED CONAN_PACKAGE_FOLDER_DOCTEST)
+    set(_DOCTEST_INC "${CONAN_PACKAGE_FOLDER_DOCTEST}/include")
+  endif()
+endif()
+
+# Final fallback: FetchContent doctest
+if (NOT _DOCTEST_INC OR _DOCTEST_INC STREQUAL "NOTFOUND")
   include(FetchContent)
-  message(STATUS "[tests] doctest not found; fetching…")
+  message(STATUS "[tests] doctest not found via Conan, fetching manually…")
   FetchContent_Declare(
     doctest
     GIT_REPOSITORY https://github.com/doctest/doctest.git
     GIT_TAG v2.4.11
   )
   FetchContent_MakeAvailable(doctest)
-  find_package(doctest CONFIG REQUIRED)
-elseif(NOT doctest_FOUND)
-  message(WARNING "[tests] doctest not found and RAYLABS_FETCH_DOCTEST=OFF -> tests disabled.")
-  return()
+  set(_DOCTEST_INC "${doctest_SOURCE_DIR}")
+  if (NOT TARGET doctest::doctest)
+    add_library(doctest::doctest INTERFACE IMPORTED)
+    target_include_directories(doctest::doctest INTERFACE "${_DOCTEST_INC}")
+  endif()
+endif()
+
+if (NOT _DOCTEST_INC OR _DOCTEST_INC STREQUAL "NOTFOUND")
+  message(FATAL_ERROR "doctest found but include dirs could not be resolved")
 endif()
 
 # ------------------------------------------------------------
@@ -64,13 +88,10 @@ endfunction()
 function(raylabs_apply_test_instrumentation tgt)
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     if (RAYLABS_TEST_ASAN)
-      # AddressSanitizer for Clang/GCC on Linux/macOS
       target_compile_options(${tgt} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
       target_link_options(${tgt} PRIVATE -fsanitize=address)
     endif()
-
     if (RAYLABS_ENABLE_COVERAGE)
-      # Use --coverage (GCov/LCov/llvm-cov). Keep O0 to improve mapping.
       target_compile_options(${tgt} PRIVATE --coverage -O0)
       target_link_options(${tgt} PRIVATE --coverage)
     endif()
@@ -135,8 +156,16 @@ foreach(src ${FILTERED_TEST_SOURCES})
   get_filename_component(tname "${src}" NAME_WE) # e.g. test_foo.cpp -> test_foo
 
   add_executable(${tname} "${src}")
+
+  # Project includes
   target_include_directories(${tname} PRIVATE ${RAYLABS_TEST_INCLUDE_DIRS})
+
+  # Ensure doctest headers are visible (always add resolved include path)
+  target_include_directories(${tname} PRIVATE ${_DOCTEST_INC})
+
   target_link_libraries(${tname} PRIVATE raylabs_lib doctest::doctest)
+
+  # Define doctest main via compile defs (remove if already defined in cpp)
   target_compile_definitions(${tname} PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
 
   if(MSVC)

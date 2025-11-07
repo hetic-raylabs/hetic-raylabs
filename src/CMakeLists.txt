@@ -21,8 +21,8 @@ file(GLOB_RECURSE RAYLABS_CORE_SOURCES
     math/*.cpp math/*.hpp
     renderer/*.cpp renderer/*.hpp
     utils/*.cpp utils/*.hpp
+    app/CliOptions.cpp app/CliOptions.hpp
 )
-
 target_sources(raylabs_lib PRIVATE ${RAYLABS_CORE_SOURCES})
 
 # ------------------------------------------------------------
@@ -37,18 +37,35 @@ target_include_directories(raylabs_lib
 # C++ standard and warnings
 # ------------------------------------------------------------
 target_compile_features(raylabs_lib PUBLIC cxx_std_20)
-target_compile_options(raylabs_lib PRIVATE
-    -Wall -Wextra -Werror -pedantic
-)
+if(MSVC)
+  target_compile_options(raylabs_lib PRIVATE /W4 /permissive-)
+else()
+  target_compile_options(raylabs_lib PRIVATE -Wall -Wextra -Werror -pedantic)
+endif()
 
 # ------------------------------------------------------------
-# Dependencies (if any via Conan or FetchContent)
+# Dependencies (consume headers during this target's compilation)
 # ------------------------------------------------------------
-# Link third-party libraries discovered at the root CMakeLists.txt
 if (HAVE_NLOHMANN_JSON)
-  target_link_libraries(raylabs_lib PUBLIC nlohmann_json::nlohmann_json)
+  target_link_libraries(raylabs_lib PRIVATE nlohmann_json::nlohmann_json)
+  # Primary: import interface include dirs from the target
+  target_include_directories(raylabs_lib PRIVATE
+    $<TARGET_PROPERTY:nlohmann_json::nlohmann_json,INTERFACE_INCLUDE_DIRECTORIES>)
+  # Fallback: some generators also expose *_INCLUDE_DIRS variables
+  if (DEFINED nlohmann_json_INCLUDE_DIRS)
+    target_include_directories(raylabs_lib PRIVATE ${nlohmann_json_INCLUDE_DIRS})
+  endif()
 else()
   message(FATAL_ERROR "nlohmann_json not found. Did you run Conan and pass the generated toolchain/deps?")
+endif()
+
+if (HAVE_STB)
+  target_link_libraries(raylabs_lib PUBLIC stb::stb)
+  target_include_directories(raylabs_lib PRIVATE
+    $<TARGET_PROPERTY:stb::stb,INTERFACE_INCLUDE_DIRECTORIES>)
+  if (DEFINED stb_INCLUDE_DIRS)
+    target_include_directories(raylabs_lib PRIVATE ${stb_INCLUDE_DIRS})
+  endif()
 endif()
 
 # ------------------------------------------------------------
@@ -56,7 +73,6 @@ endif()
 # ------------------------------------------------------------
 add_executable(raylabs_app
     app/main.cpp
-    app/CliOptions.cpp
 )
 
 target_include_directories(raylabs_app
@@ -79,10 +95,3 @@ install(TARGETS raylabs_lib raylabs_app
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
-
-# ------------------------------------------------------------
-# Optional: testing support
-# ------------------------------------------------------------
-# if(BUILD_TESTING)
-#     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../tests ${CMAKE_BINARY_DIR}/tests)
-# endif()
