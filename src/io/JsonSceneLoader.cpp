@@ -8,19 +8,19 @@
 #include <unordered_map>
 
 #include <nlohmann/json.hpp>
-#include "io/Logger.hpp"
-#include "core/Scene.hpp"
 #include "core/Camera.hpp"
+#include "core/Scene.hpp"
 #include "entities/Plane.hpp"
 #include "entities/Sphere.hpp"
 #include "entities/Triangle.hpp"
-#include "math/Vec3.hpp"
-#include "materials/Lambertian.hpp"
-#include "materials/Metal.hpp"
+#include "io/Logger.hpp"
 #include "materials/Checker.hpp"
 #include "materials/Dielectric.hpp"
+#include "materials/Lambertian.hpp"
 #include "materials/Material.hpp"
+#include "materials/Metal.hpp"
 #include "math/Color.hpp"
+#include "math/Vec3.hpp"
 
 using json = nlohmann::json;
 
@@ -85,9 +85,9 @@ std::shared_ptr<Material> parse_material_inline(const json& m) {
     if (!m.contains("type")) {
         return nullptr;
     }
-    
+
     std::string type = m["type"].get<std::string>();
-    
+
     if (type == "lambertian") {
         if (m.contains("albedo")) {
             auto albedo = color3_from(m["albedo"], "albedo");
@@ -95,19 +95,22 @@ std::shared_ptr<Material> parse_material_inline(const json& m) {
         }
         return std::make_shared<Lambertian>(Color(0.8f, 0.8f, 0.8f));
     } else if (type == "metal") {
-        auto albedo = m.contains("albedo") ? color3_from(m["albedo"], "albedo") : io::Color3f{0.8f, 0.8f, 0.8f};
+        auto albedo = m.contains("albedo") ? color3_from(m["albedo"], "albedo")
+                                           : io::Color3f{0.8f, 0.8f, 0.8f};
         float fuzz = m.contains("fuzz") ? m["fuzz"].get<float>() : 0.0f;
         return std::make_shared<Metal>(Color(albedo.r, albedo.g, albedo.b), fuzz);
     } else if (type == "checker") {
-        auto c1 = m.contains("color1") ? color3_from(m["color1"], "color1") : io::Color3f{0.8f, 0.8f, 0.8f};
-        auto c2 = m.contains("color2") ? color3_from(m["color2"], "color2") : io::Color3f{0.2f, 0.2f, 0.2f};
+        auto c1 = m.contains("color1") ? color3_from(m["color1"], "color1")
+                                       : io::Color3f{0.8f, 0.8f, 0.8f};
+        auto c2 = m.contains("color2") ? color3_from(m["color2"], "color2")
+                                       : io::Color3f{0.2f, 0.2f, 0.2f};
         float scale = m.contains("scale") ? m["scale"].get<float>() : 1.0f;
         return std::make_shared<Checker>(Color(c1.r, c1.g, c1.b), Color(c2.r, c2.g, c2.b), scale);
     } else if (type == "dielectric" || type == "glass") {
         float ior = m.contains("ior") ? m["ior"].get<float>() : 1.5f;
         return std::make_shared<Dielectric>(ior);
     }
-    
+
     return nullptr;
 }
 
@@ -264,20 +267,29 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
                         }
                         if (md.type == MaterialType::Metal && mat_obj.contains("fuzz")) {
                             md.roughness = mat_obj.at("fuzz").get<float>();
-                        } else if (md.type == MaterialType::Metal && mat_obj.contains("roughness")) {
+                        } else if (md.type == MaterialType::Metal &&
+                                   mat_obj.contains("roughness")) {
                             md.roughness = mat_obj.at("roughness").get<float>();
                         }
                         if (md.type == MaterialType::Dielectric && mat_obj.contains("ior")) {
                             md.ior = mat_obj.at("ior").get<float>();
                         }
-                        if (md.type == MaterialType::Checker && mat_obj.contains("color1") && mat_obj.contains("color2")) {
-                            md.albedo = color3_from(mat_obj.at("color1"), "color1");
-                            // Note: color2 is not stored in MaterialDTO, will use default in populateScene
+                        if (md.type == MaterialType::Checker) {
+                            if (mat_obj.contains("color1")) {
+                                md.albedo = color3_from(mat_obj.at("color1"), "color1");
+                            }
+                            if (mat_obj.contains("color2")) {
+                                md.color2 = color3_from(mat_obj.at("color2"), "color2");
+                            }
+                            if (mat_obj.contains("scale")) {
+                                md.scale = mat_obj.at("scale").get<float>();
+                            }
                         }
                         scene.materials.emplace(inline_id, md);
                         obj.sphere.material_id = inline_id;
                     } else {
-                        throw std::runtime_error("Sphere.material must be a string (id) or object (inline)");
+                        throw std::runtime_error(
+                            "Sphere.material must be a string (id) or object (inline)");
                     }
                     if (obj.sphere.radius <= 0.f)
                         throw std::runtime_error("Sphere.radius must be > 0");
@@ -302,20 +314,29 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
                         }
                         if (md.type == MaterialType::Metal && mat_obj.contains("fuzz")) {
                             md.roughness = mat_obj.at("fuzz").get<float>();
-                        } else if (md.type == MaterialType::Metal && mat_obj.contains("roughness")) {
+                        } else if (md.type == MaterialType::Metal &&
+                                   mat_obj.contains("roughness")) {
                             md.roughness = mat_obj.at("roughness").get<float>();
                         }
                         if (md.type == MaterialType::Dielectric && mat_obj.contains("ior")) {
                             md.ior = mat_obj.at("ior").get<float>();
                         }
-                        if (md.type == MaterialType::Checker && mat_obj.contains("color1") && mat_obj.contains("color2")) {
-                            md.albedo = color3_from(mat_obj.at("color1"), "color1");
-                            // Note: color2 is not stored in MaterialDTO, will use default in populateScene
+                        if (md.type == MaterialType::Checker) {
+                            if (mat_obj.contains("color1")) {
+                                md.albedo = color3_from(mat_obj.at("color1"), "color1");
+                            }
+                            if (mat_obj.contains("color2")) {
+                                md.color2 = color3_from(mat_obj.at("color2"), "color2");
+                            }
+                            if (mat_obj.contains("scale")) {
+                                md.scale = mat_obj.at("scale").get<float>();
+                            }
                         }
                         scene.materials.emplace(inline_id, md);
                         obj.plane.material_id = inline_id;
                     } else {
-                        throw std::runtime_error("Plane.material must be a string (id) or object (inline)");
+                        throw std::runtime_error(
+                            "Plane.material must be a string (id) or object (inline)");
                     }
                 } break;
             }
@@ -375,29 +396,29 @@ SceneDTO JsonSceneLoader::parse_json_string(const std::string& json_text,
 }
 
 // Compatibility methods for old API
-bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scene, std::string* err) {
+bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scene,
+                                     std::string* err) {
     try {
         json j = json::parse(json_text);
-        
+
         // Parse objects
         if (j.contains("objects") && j["objects"].is_array()) {
             for (const auto& obj : j["objects"]) {
-                if (!obj.contains("type")) continue;
+                if (!obj.contains("type"))
+                    continue;
                 std::string type = obj["type"].get<std::string>();
-                
+
                 std::shared_ptr<Material> mat = nullptr;
                 if (obj.contains("material")) {
                     mat = parse_material_inline(obj["material"]);
                 }
-                
+
                 if (type == "plane") {
                     if (obj.contains("point") && obj.contains("normal")) {
                         auto point = vec3_from(obj["point"], "point");
                         auto normal = vec3_from(obj["normal"], "normal");
-                        auto plane = std::make_shared<Plane>(
-                            Point3(point.x, point.y, point.z),
-                            Vec3(normal.x, normal.y, normal.z)
-                        );
+                        auto plane = std::make_shared<Plane>(Point3(point.x, point.y, point.z),
+                                                             Vec3(normal.x, normal.y, normal.z));
                         if (mat) {
                             scene.add(plane, mat);
                         } else {
@@ -408,10 +429,8 @@ bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scen
                     if (obj.contains("center") && obj.contains("radius")) {
                         auto center = vec3_from(obj["center"], "center");
                         float radius = obj["radius"].get<float>();
-                        auto sphere = std::make_shared<Sphere>(
-                            Point3(center.x, center.y, center.z),
-                            radius
-                        );
+                        auto sphere =
+                            std::make_shared<Sphere>(Point3(center.x, center.y, center.z), radius);
                         if (mat) {
                             scene.add(sphere, mat);
                         } else {
@@ -424,10 +443,7 @@ bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scen
                         auto b = vec3_from(obj["b"], "b");
                         auto c = vec3_from(obj["c"], "c");
                         auto tri = std::make_shared<Triangle>(
-                            Point3(a.x, a.y, a.z),
-                            Point3(b.x, b.y, b.z),
-                            Point3(c.x, c.y, c.z)
-                        );
+                            Point3(a.x, a.y, a.z), Point3(b.x, b.y, b.z), Point3(c.x, c.y, c.z));
                         if (mat) {
                             scene.add(tri, mat);
                         } else {
@@ -439,15 +455,17 @@ bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scen
         }
         return true;
     } catch (const std::exception& e) {
-        if (err) *err = e.what();
+        if (err)
+            *err = e.what();
         return false;
     }
 }
 
-bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scene, ::Camera& camera, std::string* err) {
+bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scene, ::Camera& camera,
+                                     std::string* err) {
     try {
         json j = json::parse(json_text);
-        
+
         // Parse camera
         if (j.contains("camera")) {
             const auto& cam = j["camera"];
@@ -470,22 +488,25 @@ bool JsonSceneLoader::loadFromString(const std::string& json_text, ::Scene& scen
                 camera.aspect_ratio = cam["aspect_ratio"].get<float>();
             }
         }
-        
+
         // Parse objects (reuse the other method)
         return loadFromString(json_text, scene, err);
     } catch (const std::exception& e) {
-        if (err) *err = e.what();
+        if (err)
+            *err = e.what();
         return false;
     }
 }
 
 void JsonSceneLoader::populateScene(const SceneDTO& dto, ::Scene& scene, ::Camera& camera) {
     // Populate camera
-    camera.position = Point3(dto.camera.look_from.x, dto.camera.look_from.y, dto.camera.look_from.z);
+    camera.position =
+        Point3(dto.camera.look_from.x, dto.camera.look_from.y, dto.camera.look_from.z);
     camera.look_at = Point3(dto.camera.look_at.x, dto.camera.look_at.y, dto.camera.look_at.z);
     camera.up = Vec3(dto.camera.up.x, dto.camera.up.y, dto.camera.up.z);
     camera.fov = dto.camera.vfov_deg;
-    camera.aspect_ratio = static_cast<float>(dto.image.width) / static_cast<float>(dto.image.height);
+    camera.aspect_ratio =
+        static_cast<float>(dto.image.width) / static_cast<float>(dto.image.height);
     camera.initialize();
 
     // Create materials map
@@ -497,17 +518,16 @@ void JsonSceneLoader::populateScene(const SceneDTO& dto, ::Scene& scene, ::Camer
                 mat = std::make_shared<Lambertian>(Color(md.albedo.r, md.albedo.g, md.albedo.b));
                 break;
             case MaterialType::Metal:
-                mat = std::make_shared<Metal>(Color(md.albedo.r, md.albedo.g, md.albedo.b), md.roughness);
+                mat = std::make_shared<Metal>(Color(md.albedo.r, md.albedo.g, md.albedo.b),
+                                              md.roughness);
                 break;
             case MaterialType::Dielectric:
                 mat = std::make_shared<Dielectric>(md.ior);
                 break;
             case MaterialType::Checker:
-                // For Checker, we need color1 and color2, but MaterialDTO only has albedo
-                // This is a limitation - we'll use albedo for color1 and a default for color2
-                // TODO: Extend MaterialDTO to support Checker properly
                 mat = std::make_shared<Checker>(Color(md.albedo.r, md.albedo.g, md.albedo.b),
-                                                 Color(0.2f, 0.2f, 0.2f), 1.0f);
+                                                Color(md.color2.r, md.color2.g, md.color2.b),
+                                                md.scale);
                 break;
         }
         material_map[id] = mat;
