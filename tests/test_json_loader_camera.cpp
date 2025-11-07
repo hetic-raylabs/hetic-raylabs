@@ -27,7 +27,7 @@ TEST_CASE("JsonSceneLoader loads camera and objects") {
     std::string err;
     bool ok = io::JsonSceneLoader::loadFromString(jsonText, scene, cam, &err);
     CHECK_MESSAGE(ok, err.c_str());
-    CHECK(scene.shapes.size() == 1);
+    CHECK(scene.entities.size() == 1);
     CHECK(cam.fov == doctest::Approx(60.0f));
     CHECK(cam.aspect_ratio == doctest::Approx(1.77778f));
 }
