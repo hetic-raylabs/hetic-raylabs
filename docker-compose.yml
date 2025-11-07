@@ -4,9 +4,9 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        USERNAME: ${USERNAME:-dev}
+        UID: 1000
+        GID: 1000
+        USERNAME: dev
     image: raytracer-dev:latest
     container_name: raytracer-dev
     working_dir: /work
@@ -14,9 +14,9 @@ services:
     volumes:
       - ./:/work:rw
       - ./output:/work/output:rw
-      # Named volumes for caches avoid Windows permission quirks
-      - ccache:/home/${USERNAME:-dev}/.cache/ccache
-      - conan2:/home/${USERNAME:-dev}/.conan2
+      # Use local bind mounts for caches
+      - ./.ccache:/home/dev/.cache/ccache
+      - ./.conan2:/home/dev/.conan2
 
     environment:
       HOME: /home/${USERNAME:-dev}
@@ -34,7 +34,3 @@ services:
     stdin_open: true
     ports:
       - "127.0.0.1:13000:13000"
-
-volumes:
-  ccache:
-  conan2:
