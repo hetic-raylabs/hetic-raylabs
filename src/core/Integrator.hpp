@@ -21,4 +21,3 @@ class Integrator {
 };
 
 }  // namespace raylabs
-

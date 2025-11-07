@@ -1,14 +1,14 @@
 #include <doctest/doctest.h>
 
-#include "core/Ray.hpp"
 #include "core/HitRecord.hpp"
-#include "math/Vec3.hpp"
+#include "core/Ray.hpp"
 #include "entities/Shape.hpp"
 #include "entities/Triangle.hpp"
+#include "math/Vec3.hpp"
 
 TEST_CASE("Triangle hit - front face") {
-    Triangle tri(Point3(0,0,0), Point3(1,0,0), Point3(0,1,0));
-    Ray ray(Point3(0.25f, 0.25f, 1.0f), Vec3(0,0,-1));
+    Triangle tri(Point3(0, 0, 0), Point3(1, 0, 0), Point3(0, 1, 0));
+    Ray ray(Point3(0.25f, 0.25f, 1.0f), Vec3(0, 0, -1));
 
     HitRecord rec{};
     bool hit = tri.hit(ray, 0.001f, 1e9f, rec);
@@ -20,8 +20,8 @@ TEST_CASE("Triangle hit - front face") {
 }
 
 TEST_CASE("Triangle miss - outside barycentric") {
-    Triangle tri(Point3(0,0,0), Point3(1,0,0), Point3(0,1,0));
-    Ray ray(Point3(1.1f, 1.1f, 1.0f), Vec3(0,0,-1));
+    Triangle tri(Point3(0, 0, 0), Point3(1, 0, 0), Point3(0, 1, 0));
+    Ray ray(Point3(1.1f, 1.1f, 1.0f), Vec3(0, 0, -1));
 
     HitRecord rec{};
     bool hit = tri.hit(ray, 0.001f, 1e9f, rec);
@@ -29,8 +29,8 @@ TEST_CASE("Triangle miss - outside barycentric") {
 }
 
 TEST_CASE("Triangle miss - parallel ray") {
-    Triangle tri(Point3(0,0,0), Point3(1,0,0), Point3(0,1,0));
-    Ray ray(Point3(0.25f, 0.25f, 1.0f), Vec3(1,0,0));
+    Triangle tri(Point3(0, 0, 0), Point3(1, 0, 0), Point3(0, 1, 0));
+    Ray ray(Point3(0.25f, 0.25f, 1.0f), Vec3(1, 0, 0));
 
     HitRecord rec{};
     bool hit = tri.hit(ray, 0.001f, 1e9f, rec);

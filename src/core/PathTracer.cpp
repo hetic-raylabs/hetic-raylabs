@@ -1,6 +1,6 @@
 #include "core/PathTracer.hpp"
-#include "core/Scene.hpp"
 #include "core/HitRecord.hpp"
+#include "core/Scene.hpp"
 #include "materials/Material.hpp"
 #include "math/Color.hpp"
 
@@ -22,11 +22,9 @@ Color PathTracer::ray_color(const Ray& ray, const Scene& scene, int depth) const
             Color attenuation;
             if (rec.material->scatter(ray, rec, attenuation, scattered)) {
                 Color recurse_color = ray_color(scattered, scene, depth - 1);
-                return Color(
-                    attenuation.R() * recurse_color.R(),
-                    attenuation.G() * recurse_color.G(),
-                    attenuation.B() * recurse_color.B()
-                );
+                return Color(attenuation.R() * recurse_color.R(),
+                             attenuation.G() * recurse_color.G(),
+                             attenuation.B() * recurse_color.B());
             }
             return Color(0, 0, 0);
         }
@@ -36,4 +34,3 @@ Color PathTracer::ray_color(const Ray& ray, const Scene& scene, int depth) const
 }
 
 }  // namespace raylabs
-

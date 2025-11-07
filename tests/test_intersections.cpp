@@ -1,10 +1,10 @@
 #include <doctest/doctest.h>
 
-#include "core/Ray.hpp"
 #include "core/HitRecord.hpp"
-#include "math/Vec3.hpp"
-#include "entities/Shape.hpp"
+#include "core/Ray.hpp"
 #include "entities/Plane.hpp"
+#include "entities/Shape.hpp"
+#include "math/Vec3.hpp"
 
 TEST_CASE("Plane hit - front face") {
     Plane plane(Point3(0, 0, 0), Vec3(0, 1, 0));

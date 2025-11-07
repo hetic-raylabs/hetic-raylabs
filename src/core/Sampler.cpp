@@ -20,4 +20,3 @@ float Sampler::random_float(float min, float max) {
 }
 
 }  // namespace raylabs
-

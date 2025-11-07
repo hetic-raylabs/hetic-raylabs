@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "core/Scene.hpp"
 #include "core/Camera.hpp"
+#include "core/Scene.hpp"
 #include "io/JsonSceneLoader.hpp"
 
 TEST_CASE("JsonSceneLoader loads camera and objects") {
