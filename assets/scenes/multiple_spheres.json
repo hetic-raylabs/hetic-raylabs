@@ -1,8 +1,8 @@
 {
   "image": {
-    "width": 800,
-    "height": 450,
-    "samples": 1000,
+    "width": 3840,
+    "height": 2160,
+    "samples": 4,
     "max_depth": 4,
     "output": "output/multiple_spheres.png"
   },
