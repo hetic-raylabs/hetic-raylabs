@@ -3,9 +3,9 @@
 #include <memory>
 #include <string>
 #include "core/Camera.hpp"
-#include "core/Scene.hpp"
 #include "core/Integrator.hpp"
 #include "core/Sampler.hpp"
+#include "core/Scene.hpp"
 #include "image/Image.hpp"
 #include "io/JsonSceneLoader.hpp"
 
@@ -31,4 +31,3 @@ class Renderer {
 };
 
 }  // namespace raylabs
-

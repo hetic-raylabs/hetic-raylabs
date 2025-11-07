@@ -1,15 +1,18 @@
 #include "renderer/Renderer.hpp"
+#include <chrono>
+#include <iostream>
 #include "core/PathTracer.hpp"
 #include "math/Color.hpp"
 #include "math/Vec3.hpp"
-#include <iostream>
-#include <chrono>
 
 namespace raylabs {
 
 Renderer::Renderer(const Scene& scene, const Camera& camera, const io::ImageDTO& image_config,
                    std::shared_ptr<Integrator> integrator)
-    : scene_(scene), camera_(camera), image_config_(image_config), integrator_(integrator),
+    : scene_(scene),
+      camera_(camera),
+      image_config_(image_config),
+      integrator_(integrator),
       image_(image_config.width, image_config.height) {
     if (!integrator_) {
         integrator_ = std::make_shared<PathTracer>();
@@ -58,15 +61,12 @@ Color Renderer::render_pixel(int x, int y) const {
         pixel_color += sample_color;
     }
 
-    pixel_color = Color(
-        pixel_color.R() / image_config_.samples,
-        pixel_color.G() / image_config_.samples,
-        pixel_color.B() / image_config_.samples
-    );
+    pixel_color =
+        Color(pixel_color.R() / image_config_.samples, pixel_color.G() / image_config_.samples,
+              pixel_color.B() / image_config_.samples);
     pixel_color = pixel_color.clamp01();
 
     return pixel_color;
 }
 
 }  // namespace raylabs
-

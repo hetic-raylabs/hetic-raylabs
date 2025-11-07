@@ -21,4 +21,3 @@ class Environment {
 };
 
 }  // namespace raylabs
-

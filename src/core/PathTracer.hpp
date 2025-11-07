@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/Integrator.hpp"
 #include "core/Environment.hpp"
+#include "core/Integrator.hpp"
 
 namespace raylabs {
 
@@ -19,4 +19,3 @@ class PathTracer : public Integrator {
 };
 
 }  // namespace raylabs
-

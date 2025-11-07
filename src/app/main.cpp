@@ -1,14 +1,14 @@
+#include <fstream>
 #include <iostream>
 #include <memory>
-#include <fstream>
 #include <sstream>
 #include <string>
 #include "core/Camera.hpp"
-#include "core/Scene.hpp"
 #include "core/PathTracer.hpp"
 #include "core/Sampler.hpp"
-#include "renderer/Renderer.hpp"
+#include "core/Scene.hpp"
 #include "io/JsonSceneLoader.hpp"
+#include "renderer/Renderer.hpp"
 
 using namespace std;
 using namespace raylabs;

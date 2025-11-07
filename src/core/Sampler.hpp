@@ -15,4 +15,3 @@ class Sampler {
 };
 
 }  // namespace raylabs
-
